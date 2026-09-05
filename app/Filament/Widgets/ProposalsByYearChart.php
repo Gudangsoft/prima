@@ -15,7 +15,11 @@ class ProposalsByYearChart extends ChartWidget
 {
     protected static ?string $heading = 'Usulan per Tahun Anggaran';
 
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 7;
+
+    protected static ?string $maxHeight = '280px';
+
+    protected int|string|array $columnSpan = 'full';
 
     public static function canView(): bool
     {

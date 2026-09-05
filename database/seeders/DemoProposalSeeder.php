@@ -8,16 +8,19 @@ use App\Actions\Proposal\AssignReviewers;
 use App\Actions\Proposal\ChangeProposalStatus;
 use App\Actions\Proposal\RecordApproval;
 use App\Actions\Proposal\RecordFundingDecision;
+use App\Actions\Proposal\RecordMonevInternal;
 use App\Actions\Proposal\RecordOutputValidation;
 use App\Actions\Proposal\RecordReview;
 use App\Actions\Proposal\SubmitMonitoringReport;
 use App\Enums\FundingStatus;
+use App\Enums\MonevRekomendasi;
 use App\Enums\OutputType;
 use App\Enums\OutputValidationStatus;
 use App\Enums\ProposalStatus;
 use App\Enums\ReportType;
 use App\Enums\ReviewRecommendation;
 use App\Enums\Role;
+use App\Models\CatatanHarian;
 use App\Models\Output;
 use App\Models\Proposal;
 use App\Models\ProposalScheme;
@@ -124,6 +127,29 @@ class DemoProposalSeeder extends Seeder
             20_000_000 + ($proposal->id % 3) * 5_000_000,
             'SK-'.str_pad((string) $proposal->id, 3, '0', STR_PAD_LEFT).'/LPPM/'.$proposal->tahun_anggaran,
         );
+        // Catatan harian (logbook) untuk usulan yang sudah didanai.
+        foreach ([14, 7, 1] as $mingguLalu) {
+            CatatanHarian::create([
+                'proposal_id' => $proposal->id,
+                'tanggal' => now()->subDays($mingguLalu * 7)->toDateString(),
+                'kegiatan' => 'Pelaksanaan kegiatan minggu ke-'.(15 - $mingguLalu).': studi literatur, pengumpulan data, dan analisis awal.',
+                'capaian' => 'Progres sesuai jadwal.',
+                'persentase' => min(100, (15 - $mingguLalu) * 7),
+                'created_by' => $proposal->user_id,
+            ]);
+        }
+
+        if ($proposal->id % 2 === 0) {
+            app(RecordMonevInternal::class)(
+                $proposal->fresh(),
+                $admin,
+                now()->subDays(20)->toDateString(),
+                78,
+                MonevRekomendasi::Lanjut,
+                'Pelaksanaan berjalan baik, luaran on-track.',
+            );
+        }
+
         if ($target === ProposalStatus::Funded) {
             return;
         }

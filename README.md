@@ -140,6 +140,22 @@ Semua unggahan (proposal, laporan, luaran, SK) disimpan di disk `local`
 `GET /berkas/{usulan|laporan|luaran|sk}/{id}` → [FileDownloadController](app/Http/Controllers/FileDownloadController.php),
 yang mengecek `ProposalPolicy` sebelum men-stream file.
 
+## Tampilan
+
+- **Halaman publik** `/` — portal bergaya BIMA (identitas institusi sendiri "SIP2M",
+  tanpa logo/segel Kemdiktisaintek): hero, angka statistik langsung dari DB, 8 tahap
+  alur layanan, peran pengguna, pengumuman, footer.
+  [LandingController](app/Http/Controllers/LandingController.php) ·
+  [resources/views/landing.blade.php](resources/views/landing.blade.php) ·
+  memakai Tailwind Play CDN (untuk offline: `npm run build` lalu ganti ke `@vite`).
+- **Panel** — brand "SIP2M" + logo/favicon SVG di `public/images/`, warna primer
+  biru `#1B5E9C`, judul dasbor "Dasbor" dengan sub-judul, catatan institusi di
+  halaman login. Diatur di [AdminPanelProvider](app/Providers/Filament/AdminPanelProvider.php).
+- **Dasbor admin** — kartu ringkasan (Total Usulan, Dalam Proses, Usulan Didanai,
+  Dana Tersalur, Luaran Tervalidasi, Ditolak), 3 chart rekap, tabel "Usulan Terbaru",
+  dan panel "Pengumuman" (sumber `config('sip2m.announcements')`). Dosen melihat
+  ringkasan usulannya sendiri.
+
 ## Data contoh
 
 `DemoProposalSeeder` membuat 15 usulan menyebar di semua status (beserta approval,

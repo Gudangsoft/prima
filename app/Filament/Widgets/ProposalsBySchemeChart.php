@@ -14,7 +14,11 @@ class ProposalsBySchemeChart extends ChartWidget
 {
     protected static ?string $heading = 'Usulan per Skema';
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 6;
+
+    protected static ?string $maxHeight = '280px';
+
+    protected int|string|array $columnSpan = 'full';
 
     public static function canView(): bool
     {

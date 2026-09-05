@@ -41,7 +41,8 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // URL relatif (root-relative) supaya berkas tetap tampil di host/port mana pun.
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

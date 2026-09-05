@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\BidangFokus;
+use App\Enums\MemberApprovalStatus;
+use App\Enums\MemberType;
 use App\Enums\ProposalStatus;
 use App\Observers\ProposalObserver;
 use Database\Factories\ProposalFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,11 +35,21 @@ class Proposal extends Model
     protected $fillable = [
         'user_id',
         'scheme_id',
+        'kelompok_skema',
+        'bidang_fokus',
+        'tema',
+        'topik',
+        'rumpun_ilmu',
+        'target_tkt',
+        'lama_kegiatan',
+        'makro_riset',
         'judul',
         'abstrak',
         'file_proposal',
+        'substansi_file',
         'status',
         'tahun_anggaran',
+        'tahun_usulan',
     ];
 
     /** Status awal setiap usulan baru. */
@@ -47,7 +61,11 @@ class Proposal extends Model
     {
         return [
             'status' => ProposalStatus::class,
+            'bidang_fokus' => BidangFokus::class,
             'tahun_anggaran' => 'integer',
+            'tahun_usulan' => 'integer',
+            'target_tkt' => 'integer',
+            'lama_kegiatan' => 'integer',
         ];
     }
 
@@ -105,6 +123,64 @@ class Proposal extends Model
     public function outputs(): HasMany
     {
         return $this->hasMany(Output::class)->latest();
+    }
+
+    /** @return HasMany<CatatanHarian> */
+    public function catatanHarian(): HasMany
+    {
+        return $this->hasMany(CatatanHarian::class)->latest('tanggal');
+    }
+
+    /** @return HasMany<ProposalMember> */
+    public function members(): HasMany
+    {
+        return $this->hasMany(ProposalMember::class);
+    }
+
+    /** @return HasMany<ProposalOutputTarget> */
+    public function outputTargets(): HasMany
+    {
+        return $this->hasMany(ProposalOutputTarget::class)->orderBy('tahun_ke');
+    }
+
+    /** @return HasMany<ProposalStrategicField> */
+    public function strategicFields(): HasMany
+    {
+        return $this->hasMany(ProposalStrategicField::class);
+    }
+
+    /** @return HasMany<ProposalRabItem> */
+    public function rabItems(): HasMany
+    {
+        return $this->hasMany(ProposalRabItem::class)->orderBy('tahun_ke');
+    }
+
+    /** @return HasMany<ProposalPartner> */
+    public function partners(): HasMany
+    {
+        return $this->hasMany(ProposalPartner::class);
+    }
+
+    /** Total RAB seluruh tahun. */
+    protected function totalRab(): Attribute
+    {
+        return Attribute::get(fn (): float => (float) $this->rabItems
+            ->sum(fn (ProposalRabItem $i): float => $i->total));
+    }
+
+    /** Semua anggota dosen sudah menyetujui keikutsertaannya. */
+    public function allDosenMembersApproved(): bool
+    {
+        return $this->members()
+            ->where('jenis', MemberType::Dosen->value)
+            ->where('status', '!=', MemberApprovalStatus::Menyetujui->value)
+            ->doesntExist();
+    }
+
+    /** @return HasOne<MonevInternal> */
+    public function monevInternal(): HasOne
+    {
+        return $this->hasOne(MonevInternal::class);
     }
 
     public function isAssignedReviewer(User $user): bool

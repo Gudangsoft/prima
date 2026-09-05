@@ -2,56 +2,87 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\Kegiatan;
+use App\Filament\Pages\ModulBelumTersedia;
 use App\Http\Middleware\EnsureOtpVerified;
+use App\Support\Settings;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $primary = (string) Settings::get('primary_color', '#3B5BD9');
+
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('SIP2M')
-            ->brandLogo(asset('images/logo-sip2m.svg'))
+            ->brandName((string) Settings::get('app_name', 'SIP2M'))
+            ->brandLogo($this->assetOrDefault('logo_path', 'images/logo-sip2m.svg'))
             ->brandLogoHeight('2rem')
-            ->favicon(asset('images/favicon.svg'))
+            ->favicon($this->assetOrDefault('favicon_path', 'images/favicon.svg'))
             ->login()
             ->passwordReset()
-            ->profile()
+            ->profile(EditProfile::class, isSimple: false)
+            ->font('Nunito Sans')
             ->colors([
-                'primary' => Color::hex('#1B5E9C'),
+                'primary' => Color::hex($primary),
+                'info' => Color::hex($primary),
                 'gray' => Color::Slate,
             ])
-            ->sidebarCollapsibleOnDesktop()
-            ->maxContentWidth('screen-xl')
+            ->topNavigation()
+            ->maxContentWidth('screen-2xl')
+            ->navigationGroups([
+                // Menu dosen/pengusul (gaya BIMA) — grup kosong otomatis disembunyikan
+                // untuk peran pengawas.
+                NavigationGroup::make('Penelitian')->icon('heroicon-o-magnifying-glass'),
+                NavigationGroup::make('Pengabdian')->icon('heroicon-o-document-text'),
+                NavigationGroup::make('Konsorsium')->icon('heroicon-o-share'),
+                NavigationGroup::make('Prototipe')->icon('heroicon-o-cube'),
+                NavigationGroup::make('Kekayaan Intelektual')->icon('heroicon-o-lock-closed'),
+
+                NavigationGroup::make('Data Pendukung'),
+                NavigationGroup::make('Monitoring'),
+                NavigationGroup::make('Pengelolaan Reviewer'),
+                NavigationGroup::make('Pengaturan'),
+            ])
+            ->navigationItems($this->dosenNavigationItems())
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
-            ])
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => <<<'HTML'
+                    <style>
+                        /* Latar konten abu-abu muda seperti BIMA. */
+                        .fi-main { background-color: #eef1f6; }
+                        :is(.dark) .fi-main { background-color: rgb(17 24 39); }
+                    </style>
+                    HTML,
+            )
             ->renderHook(
                 PanelsRenderHook::BODY_START,
                 fn (): string => Blade::render('<x-impersonation-banner />'),
@@ -59,9 +90,8 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
                 fn (): string => Blade::render(
-                    '<p class="text-center text-sm text-gray-500 dark:text-gray-400">'
-                    .'Sistem Informasi Penelitian &amp; Pengabdian &mdash; LPPM'
-                    .'</p>',
+                    '<p class="text-center text-sm text-gray-500 dark:text-gray-400">{{ $note }}</p>',
+                    ['note' => (string) Settings::get('login_note', 'Sistem Informasi Penelitian & Pengabdian — LPPM')],
                 ),
             )
             ->renderHook(
@@ -87,5 +117,54 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
                 EnsureOtpVerified::class,
             ]);
+    }
+
+    /**
+     * Menu atas untuk dosen/pengusul (gaya BIMA): dropdown Penelitian & Pengabdian
+     * yang fungsional, plus placeholder Konsorsium / Prototipe / Kekayaan Intelektual.
+     *
+     * @return array<int, NavigationItem>
+     */
+    private function dosenNavigationItems(): array
+    {
+        $isDosen = static fn (): bool => auth()->user()?->hasRole('dosen')
+            && ! auth()->user()->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']);
+
+        $items = [];
+
+        foreach (['Penelitian' => 'penelitian', 'Pengabdian' => 'pengabdian'] as $group => $kategori) {
+            $sort = 0;
+
+            foreach (Kegiatan::TABS as $tab => $label) {
+                $items[] = NavigationItem::make($label)
+                    ->group($group)->sort(++$sort)->visible($isDosen)
+                    ->url(fn (): string => Kegiatan::urlFor($kategori, $tab))
+                    ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.pages.kegiatan')
+                        && request()->input('kategori') === $kategori
+                        && (request()->input('tab', 'usulan') === $tab));
+            }
+        }
+
+        foreach (['Konsorsium' => 'konsorsium', 'Prototipe' => 'prototipe', 'Kekayaan Intelektual' => 'kekayaan-intelektual'] as $group => $modul) {
+            $items[] = NavigationItem::make('Belum tersedia')
+                ->group($group)->visible($isDosen)
+                ->url(fn (): string => ModulBelumTersedia::urlFor($modul))
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.pages.modul-belum-tersedia')
+                    && request()->input('modul') === $modul);
+        }
+
+        return $items;
+    }
+
+    /** URL berkas unggahan branding (disk public) atau aset bawaan (root-relative). */
+    private function assetOrDefault(string $settingKey, string $default): string
+    {
+        $path = Settings::get($settingKey);
+
+        if (filled($path)) {
+            return Storage::disk('public')->url((string) $path);
+        }
+
+        return '/'.ltrim($default, '/');
     }
 }

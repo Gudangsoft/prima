@@ -79,6 +79,17 @@ class OtpGateTest extends TestCase
             ->assertOk();
     }
 
+    public function test_gate_can_be_disabled_via_config(): void
+    {
+        config()->set('sip2m.otp.enabled', false);
+
+        $user = $this->dosen(['phone_number' => null]); // tanpa HP & tanpa sesi OTP
+
+        $this->actingAs($user)->get('/admin')->assertOk();
+        $this->actingAs($user)->get(route('filament.admin.pages.verifikasi-otp'))
+            ->assertRedirect(route('filament.admin.pages.dashboard'));
+    }
+
     public function test_user_without_any_known_role_cannot_access_the_panel(): void
     {
         $user = User::factory()->create(['phone_number' => '081234567890']);

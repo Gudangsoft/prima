@@ -23,17 +23,17 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-magnifying-glass-circle';
 
-    protected static ?string $navigationGroup = 'Administrasi';
+    protected static ?string $navigationGroup = 'Data Pendukung';
 
-    protected static ?string $navigationLabel = 'Pengguna';
+    protected static ?string $navigationLabel = 'Cari Akun';
 
-    protected static ?string $modelLabel = 'Pengguna';
+    protected static ?string $modelLabel = 'Akun';
 
-    protected static ?string $pluralModelLabel = 'Pengguna';
+    protected static ?string $pluralModelLabel = 'Akun Pengguna';
 
-    protected static ?int $navigationSort = 90;
+    protected static ?int $navigationSort = 20;
 
     public static function form(Form $form): Form
     {
@@ -41,6 +41,16 @@ class UserResource extends Resource
             Forms\Components\Section::make('Identitas')
                 ->columns(2)
                 ->schema([
+                    Forms\Components\FileUpload::make('avatar_path')
+                        ->label('Foto profil')
+                        ->avatar()
+                        ->disk('public')
+                        ->directory('avatars')
+                        ->imageEditor()
+                        ->circleCropper()
+                        ->maxSize(4096)
+                        ->columnSpanFull(),
+
                     Forms\Components\TextInput::make('name')
                         ->label('Nama lengkap')
                         ->required()
@@ -64,6 +74,28 @@ class UserResource extends Resource
                         ->tel()
                         ->maxLength(30)
                         ->rule('regex:/^[0-9+\-\s]*$/'),
+
+                    Forms\Components\TextInput::make('jabatan')
+                        ->label('Jabatan fungsional')
+                        ->maxLength(100),
+
+                    Forms\Components\Select::make('program_studi_id')
+                        ->label('Program studi')
+                        ->relationship('programStudi', 'nama')
+                        ->getOptionLabelFromRecordUsing(fn ($record): string => "{$record->kode} — {$record->jenjang?->value} {$record->nama}")
+                        ->searchable()
+                        ->preload(),
+
+                    Forms\Components\TextInput::make('unit_kerja')
+                        ->label('Unit kerja lain')
+                        ->helperText('Isi bila bukan program studi.')
+                        ->maxLength(150),
+
+                    Forms\Components\TextInput::make('kompetensi')
+                        ->label('Kompetensi / bidang keahlian')
+                        ->helperText('Dipakai untuk pemilihan reviewer.')
+                        ->maxLength(255)
+                        ->columnSpanFull(),
                 ]),
 
             Forms\Components\Section::make('Akun & Peran')
@@ -98,6 +130,12 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('avatar_path')
+                    ->label('')
+                    ->circular()
+                    ->disk('public')
+                    ->placeholder('—'),
+
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama')
                     ->searchable()
@@ -115,7 +153,13 @@ class UserResource extends Resource
 
                 Tables\Columns\TextColumn::make('nidn')
                     ->label('NIDN')
-                    ->searchable()
+                    ->searchable(isIndividual: true)
+                    ->copyable()
+                    ->placeholder('—'),
+
+                Tables\Columns\TextColumn::make('programStudi.nama')
+                    ->label('Program Studi')
+                    ->placeholder('—')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('phone_number')
@@ -146,6 +190,12 @@ class UserResource extends Resource
                     ->relationship('roles', 'name')
                     ->options(RoleEnum::options())
                     ->multiple(),
+
+                Tables\Filters\SelectFilter::make('program_studi_id')
+                    ->label('Program studi')
+                    ->relationship('programStudi', 'nama')
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\Action::make('impersonate')

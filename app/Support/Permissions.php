@@ -14,6 +14,39 @@ use App\Enums\Role;
  */
 final class Permissions
 {
+    private const MODULES = [
+        'users' => 'Pengguna',
+        'schemes' => 'Skema Usulan',
+        'proposals' => 'Usulan',
+        'announcements' => 'Berita / Pengumuman',
+        'prodi' => 'Program Studi',
+    ];
+
+    private const ACTIONS = [
+        'viewAny' => 'Lihat daftar',
+        'view' => 'Lihat detail',
+        'create' => 'Tambah',
+        'update' => 'Ubah',
+        'delete' => 'Hapus',
+    ];
+
+    /** Nama modul yang ramah-baca dari sebuah permission. */
+    public static function moduleLabel(string $permission): string
+    {
+        $module = explode('.', $permission, 2)[0];
+
+        return self::MODULES[$module] ?? ucfirst($module);
+    }
+
+    /** Label ramah-baca lengkap: "Usulan — Lihat daftar". */
+    public static function label(string $permission): string
+    {
+        [$module, $action] = array_pad(explode('.', $permission, 2), 2, '');
+
+        return (self::MODULES[$module] ?? ucfirst($module))
+            .' — '.(self::ACTIONS[$action] ?? $action);
+    }
+
     /** Semua permission yang dikenal aplikasi. */
     public static function all(): array
     {
@@ -21,7 +54,33 @@ final class Permissions
             self::users(),
             self::schemes(),
             self::proposals(),
+            self::announcements(),
+            self::prodi(),
         )));
+    }
+
+    /** Modul: berita / pengumuman (Admin LPPM). */
+    public static function announcements(): array
+    {
+        return [
+            'announcements.viewAny',
+            'announcements.view',
+            'announcements.create',
+            'announcements.update',
+            'announcements.delete',
+        ];
+    }
+
+    /** Modul: program studi (Admin LPPM). */
+    public static function prodi(): array
+    {
+        return [
+            'prodi.viewAny',
+            'prodi.view',
+            'prodi.create',
+            'prodi.update',
+            'prodi.delete',
+        ];
     }
 
     /** Modul: manajemen pengguna & role (Admin LPPM). */
@@ -79,6 +138,8 @@ final class Permissions
             Role::AdminLppm->value => [
                 ...self::users(),
                 ...self::schemes(),
+                ...self::announcements(),
+                ...self::prodi(),
                 'proposals.viewAny',
                 'proposals.view',
                 'proposals.update',

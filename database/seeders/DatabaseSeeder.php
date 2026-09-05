@@ -17,9 +17,9 @@ class DatabaseSeeder extends Seeder
 
         $this->createUser('Super Admin', 'superadmin@sip2m.test', RoleEnum::SuperAdmin, phone: '081200000000');
         $this->createUser('Admin LPPM', 'admin@sip2m.test', RoleEnum::AdminLppm, phone: '081200000001');
-        $this->createUser('Pimpinan LPPM', 'pimpinan@sip2m.test', RoleEnum::Pimpinan, phone: '081200000002');
-        $this->createUser('Reviewer Satu', 'reviewer@sip2m.test', RoleEnum::Reviewer, phone: '081200000003');
-        $this->createUser('Reviewer Dua', 'reviewer2@sip2m.test', RoleEnum::Reviewer, phone: '081200000004');
+        $this->createUser('Dr. Iwan Kurniawan, M.Kom.', 'pimpinan@sip2m.test', RoleEnum::Pimpinan, phone: '081200000002', nidn: '0401017001');
+        $this->createUser('Prof. Wisnu Nurcahyo', 'reviewer@sip2m.test', RoleEnum::Reviewer, phone: '081200000003', nidn: '0021026504', kompetensi: 'Ilmu Komputer / Rekayasa Perangkat Lunak');
+        $this->createUser('Dr. Satria Jaya Priatna', 'reviewer2@sip2m.test', RoleEnum::Reviewer, phone: '081200000004', nidn: '0015016404', kompetensi: 'Teknik Lingkungan / Pengelolaan Sumber Daya');
 
         // Dosen dengan NIDN. Nomor HP sengaja dikosongkan untuk mendemokan
         // langkah "Lengkapi Profil" pada gerbang OTP.
@@ -27,7 +27,9 @@ class DatabaseSeeder extends Seeder
         $this->createUser('Dosen Dua', 'dosen2@sip2m.test', RoleEnum::Dosen, phone: '081200000006', nidn: '0402029002');
 
         $this->call(ProposalSchemeSeeder::class);
+        $this->call(ProgramStudiSeeder::class);
         $this->call(DemoProposalSeeder::class);
+        $this->call(AnnouncementSeeder::class);
     }
 
     private function createUser(
@@ -36,6 +38,7 @@ class DatabaseSeeder extends Seeder
         RoleEnum $role,
         ?string $phone = null,
         ?string $nidn = null,
+        ?string $kompetensi = null,
     ): void {
         $user = User::updateOrCreate(
             ['email' => $email],
@@ -45,6 +48,7 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
                 'phone_number' => $phone,
                 'nidn' => $nidn,
+                'kompetensi' => $kompetensi,
             ],
         );
 

@@ -6,10 +6,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProposalStatus;
 use App\Enums\Role;
+use App\Models\Announcement;
 use App\Models\FundingDecision;
 use App\Models\Proposal;
 use App\Models\ProposalScheme;
 use App\Models\User;
+use App\Support\Settings;
 use Illuminate\Contracts\View\View;
 
 class LandingController extends Controller
@@ -24,6 +26,8 @@ class LandingController extends Controller
         ];
 
         return view('landing', [
+            'branding' => Settings::branding(),
+            'footer' => Settings::footer(),
             'stats' => [
                 'usulan' => Proposal::query()->count(),
                 'didanai' => Proposal::query()->whereIn('status', $fundedStatuses)->count(),
@@ -32,6 +36,7 @@ class LandingController extends Controller
                 'skema_aktif' => ProposalScheme::query()->where('aktif', true)->count(),
                 'dana' => (float) FundingDecision::query()->sum('jumlah_dana'),
             ],
+            'announcements' => Announcement::query()->published()->limit(3)->get(),
             'tahunAktif' => (int) now()->year,
         ]);
     }

@@ -32,7 +32,12 @@ class ProposalPolicy
             return true;
         }
 
-        return $proposal->user_id === $user->getKey();
+        if ($proposal->user_id === $user->getKey()) {
+            return true;
+        }
+
+        // Anggota tim (diundang) boleh melihat usulan yang mengikutsertakannya.
+        return $proposal->members()->where('user_id', $user->getKey())->exists();
     }
 
     public function create(User $user): bool
@@ -64,7 +69,8 @@ class ProposalPolicy
     {
         return $proposal->user_id === $user->getKey()
             && $proposal->status === ProposalStatus::Draft
-            && filled($proposal->file_proposal);
+            && filled($proposal->file_proposal)
+            && $proposal->allDosenMembersApproved();
     }
 
     /** Persetujuan institusi / penolakan (gerbang tunggal). */
@@ -119,5 +125,26 @@ class ProposalPolicy
     {
         return $user->isAdminLppm()
             && in_array($proposal->status, [ProposalStatus::Reported, ProposalStatus::OutputValidated], true);
+    }
+
+    private const BERJALAN = [
+        ProposalStatus::Funded,
+        ProposalStatus::InProgress,
+        ProposalStatus::Reported,
+        ProposalStatus::OutputValidated,
+    ];
+
+    /** Dosen mengisi catatan harian (logbook) untuk usulan yang berjalan. */
+    public function logbook(User $user, Proposal $proposal): bool
+    {
+        return $proposal->user_id === $user->getKey()
+            && in_array($proposal->status, self::BERJALAN, true);
+    }
+
+    /** Admin LPPM melakukan monev internal PT atas usulan yang berjalan. */
+    public function monevInternal(User $user, Proposal $proposal): bool
+    {
+        return $user->isAdminLppm()
+            && in_array($proposal->status, self::BERJALAN, true);
     }
 }

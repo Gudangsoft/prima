@@ -35,6 +35,11 @@ class EnsureOtpVerified
 
     public function handle(Request $request, Closure $next): Response
     {
+        // Gerbang OTP dapat dimatikan lewat OTP_ENABLED=false (mis. saat pengembangan).
+        if (! config('sip2m.otp.enabled', true)) {
+            return $next($request);
+        }
+
         $user = $request->user();
 
         if ($user === null) {

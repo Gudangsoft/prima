@@ -4,24 +4,29 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Models\Announcement;
 use Filament\Widgets\Widget;
+use Illuminate\Support\Collection;
 
 /**
- * Panel "Pengumuman" pada dasbor. Sumber: config('sip2m.announcements').
+ * Panel "Pengumuman" pada dasbor. Sumber: tabel announcements (terbit).
  */
 class AnnouncementsWidget extends Widget
 {
     protected static string $view = 'filament.widgets.announcements';
 
-    protected static ?int $sort = 6;
+    protected static ?int $sort = 8;
 
     protected int|string|array $columnSpan = 'full';
 
-    /**
-     * @return array<int, array{tanggal: string, judul: string, isi: string}>
-     */
-    public function getAnnouncements(): array
+    public static function canView(): bool
     {
-        return config('sip2m.announcements', []);
+        return Announcement::query()->published()->exists();
+    }
+
+    /** @return Collection<int, Announcement> */
+    public function getAnnouncements(): Collection
+    {
+        return Announcement::query()->published()->limit(6)->get();
     }
 }

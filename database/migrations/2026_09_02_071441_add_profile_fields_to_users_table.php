@@ -1,0 +1,25 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('avatar_path')->nullable()->after('name');
+            $table->string('jabatan')->nullable()->after('kompetensi');       // jabatan fungsional
+            $table->string('unit_kerja')->nullable()->after('jabatan');       // prodi / fakultas / unit
+            $table->text('bio')->nullable()->after('unit_kerja');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['avatar_path', 'jabatan', 'unit_kerja', 'bio']);
+        });
+    }
+};

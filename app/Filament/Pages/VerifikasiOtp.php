@@ -31,11 +31,14 @@ class VerifikasiOtp extends Page implements HasForms
     /** @var array<string, mixed>|null */
     public ?array $data = [];
 
-    /** Sisa detik sebelum kode boleh dikirim ulang (untuk countdown di UI). */
-    public int $resendCooldown = 0;
-
     public function mount(): void
     {
+        if (! config('sip2m.otp.enabled', true)) {
+            $this->redirect(route('filament.admin.pages.dashboard'));
+
+            return;
+        }
+
         $user = auth()->user();
 
         if ($this->otpAlreadyVerified($user->getKey())) {
@@ -50,9 +53,7 @@ class VerifikasiOtp extends Page implements HasForms
             return;
         }
 
-        $otp = app(OtpService::class);
-        $otp->ensureIssuedFor($user);
-        $this->resendCooldown = $otp->secondsUntilResend($user->refresh());
+        app(OtpService::class)->ensureIssuedFor($user);
 
         $this->form->fill();
     }
@@ -73,7 +74,6 @@ class VerifikasiOtp extends Page implements HasForms
                         'inputmode' => 'numeric',
                         'autofocus' => true,
                         'maxlength' => $length,
-                        'pattern' => '[0-9]*',
                     ])
                     ->helperText("Masukkan {$length} digit kode yang dikirim ke {$this->maskedEmail()}."),
             ])
@@ -82,10 +82,10 @@ class VerifikasiOtp extends Page implements HasForms
 
     public function verifikasi(): void
     {
-        $data = $this->form->getState();
+        $code = (string) ($this->form->getState()['code'] ?? '');
         $user = auth()->user();
 
-        $result = app(OtpService::class)->verify($user, (string) $data['code']);
+        $result = app(OtpService::class)->verify($user, $code);
 
         if (! $result['ok']) {
             Notification::make()
@@ -110,23 +110,15 @@ class VerifikasiOtp extends Page implements HasForms
         $this->redirect(route('filament.admin.pages.dashboard'));
     }
 
-    /** Dipanggil tiap detik oleh wire:poll saat cooldown aktif, untuk countdown UI. */
-    public function tickCooldown(): void
-    {
-        $this->resendCooldown = app(OtpService::class)->secondsUntilResend(auth()->user());
-    }
-
     public function kirimUlang(): void
     {
         $otp = app(OtpService::class);
         $user = auth()->user();
 
         if (! $otp->canResend($user)) {
-            $this->resendCooldown = $otp->secondsUntilResend($user);
-
             Notification::make()
                 ->title('Tunggu sebentar')
-                ->body("Anda baru bisa minta kode baru dalam {$this->resendCooldown} detik.")
+                ->body("Anda baru bisa minta kode baru dalam {$otp->secondsUntilResend($user)} detik.")
                 ->warning()
                 ->send();
 
@@ -134,7 +126,6 @@ class VerifikasiOtp extends Page implements HasForms
         }
 
         $otp->issueFor($user);
-        $this->resendCooldown = $otp->secondsUntilResend($user->refresh());
 
         Notification::make()
             ->title('Kode baru dikirim')

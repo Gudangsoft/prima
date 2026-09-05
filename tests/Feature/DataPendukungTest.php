@@ -1,0 +1,129 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use App\Filament\Imports\DosenImporter;
+use App\Filament\Imports\ProgramStudiImporter;
+use App\Models\ProgramStudi;
+use App\Models\User;
+use Filament\Actions\Imports\Models\Import;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class DataPendukungTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seedRoles();
+    }
+
+    private function actingOtpVerified(string $role): User
+    {
+        $user = User::factory()->create(['phone_number' => '081234567890']);
+        $user->assignRole($role);
+        $this->actingAs($user)->withSession([config('sip2m.otp.session_key') => $user->getKey()]);
+
+        return $user;
+    }
+
+    private function runImport(string $importerClass, array $columns, array $rows): Import
+    {
+        $admin = User::query()->role('admin_lppm')->first() ?? $this->actingOtpVerified('admin_lppm');
+
+        $import = Import::create([
+            'user_id' => $admin->id,
+            'file_name' => 'test.csv',
+            'file_path' => 'test.csv',
+            'importer' => $importerClass,
+            'total_rows' => count($rows),
+        ]);
+
+        $columnMap = array_combine($columns, $columns);
+        $importer = new $importerClass($import, $columnMap, []);
+
+        foreach ($rows as $row) {
+            $importer($row);
+        }
+
+        return $import;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    public function test_program_studi_pages_are_gated_to_admin_lppm(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+        $this->get('/admin/program-studi')->assertOk();
+
+        $this->actingOtpVerified('dosen');
+        $this->get('/admin/program-studi')->assertForbidden();
+    }
+
+    public function test_sinkronisasi_dosen_page_is_gated(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+        $this->get('/admin/sinkronisasi-dosen')->assertOk();
+
+        $this->actingOtpVerified('reviewer');
+        $this->get('/admin/sinkronisasi-dosen')->assertForbidden();
+    }
+
+    public function test_program_studi_import_creates_and_updates_by_kode(): void
+    {
+        ProgramStudi::factory()->create(['kode' => '55201', 'nama' => 'Nama Lama']);
+
+        $this->runImport(ProgramStudiImporter::class,
+            ['kode', 'nama', 'jenjang', 'fakultas', 'aktif'],
+            [
+                ['kode' => '55201', 'nama' => 'Teknik Informatika', 'jenjang' => 's1', 'fakultas' => 'FT', 'aktif' => '1'],
+                ['kode' => '99999', 'nama' => 'Prodi Baru', 'jenjang' => 'S2', 'fakultas' => 'Pascasarjana', 'aktif' => '1'],
+            ],
+        );
+
+        $this->assertSame(2, ProgramStudi::count(), 'tidak menduplikasi kode yang sudah ada');
+        $this->assertSame('Teknik Informatika', ProgramStudi::where('kode', '55201')->value('nama'));
+        $this->assertSame('S1', ProgramStudi::where('kode', '55201')->value('jenjang')->value);
+        $this->assertDatabaseHas('program_studi', ['kode' => '99999', 'nama' => 'Prodi Baru']);
+    }
+
+    public function test_dosen_import_creates_account_with_role_and_links_prodi(): void
+    {
+        $prodi = ProgramStudi::factory()->create(['kode' => '55201']);
+
+        $this->runImport(DosenImporter::class,
+            ['nidn', 'name', 'email', 'phone_number', 'jabatan', 'kompetensi', 'kode_prodi'],
+            [[
+                'nidn' => '0401019001', 'name' => 'Dr. Budi', 'email' => 'budi@kampus.ac.id',
+                'phone_number' => '0812', 'jabatan' => 'Lektor', 'kompetensi' => 'RPL', 'kode_prodi' => '55201',
+            ]],
+        );
+
+        $user = User::where('nidn', '0401019001')->first();
+        $this->assertNotNull($user);
+        $this->assertTrue($user->hasRole('dosen'));
+        $this->assertSame('budi@kampus.ac.id', $user->email);
+        $this->assertSame($prodi->id, $user->program_studi_id);
+        $this->assertSame('Lektor', $user->jabatan);
+    }
+
+    public function test_dosen_import_updates_existing_account_matched_by_nidn(): void
+    {
+        $existing = User::factory()->create(['nidn' => '0401019001', 'name' => 'Nama Lama', 'jabatan' => null]);
+        $existing->assignRole('dosen');
+
+        $this->runImport(DosenImporter::class,
+            ['nidn', 'name', 'email', 'jabatan'],
+            [['nidn' => '0401019001', 'name' => 'Nama Baru', 'email' => $existing->email, 'jabatan' => 'Lektor Kepala']],
+        );
+
+        $existing->refresh();
+        $this->assertSame('Nama Baru', $existing->name);
+        $this->assertSame('Lektor Kepala', $existing->jabatan);
+        $this->assertSame(1, User::where('nidn', '0401019001')->count());
+    }
+}

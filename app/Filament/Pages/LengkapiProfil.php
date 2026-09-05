@@ -33,6 +33,12 @@ class LengkapiProfil extends Page implements HasForms
 
     public function mount(): void
     {
+        if (! config('sip2m.otp.enabled', true)) {
+            $this->redirect(route('filament.admin.pages.dashboard'));
+
+            return;
+        }
+
         $user = auth()->user();
 
         if ($this->otpAlreadyVerified($user->getKey())) {

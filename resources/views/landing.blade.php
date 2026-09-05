@@ -1,13 +1,13 @@
 @php
     $alur = [
-        ['draft', 'Usulan Baru', 'Dosen menyusun usulan: pilih skema, isi substansi, unggah proposal PDF.'],
-        ['submitted', 'Pengajuan', 'Usulan dikirim ke LPPM untuk diperiksa kelengkapannya.'],
-        ['approved_lppm', 'Persetujuan Institusi', 'Admin LPPM / Pimpinan menyetujui usulan yang layak lanjut.'],
-        ['under_review', 'Penilaian Reviewer', 'Reviewer yang ditugaskan memberi skor dan rekomendasi.'],
-        ['funded', 'Penetapan Pendanaan', 'LPPM menetapkan status pendanaan dan nomor SK.'],
-        ['in_progress', 'Pelaksanaan & Monev', 'Kegiatan berjalan; dosen mengunggah laporan kemajuan.'],
-        ['reported', 'Pelaporan Akhir', 'Laporan akhir diserahkan dan diverifikasi.'],
-        ['output_validated', 'Validasi Luaran', 'Bukti luaran (publikasi/HKI/produk) divalidasi LPPM.'],
+        ['draft', 'Usulan Baru', 'Dosen menyusun usulan: pilih skema, isi substansi, unggah proposal PDF.', '#94a3b8'],
+        ['submitted', 'Pengajuan', 'Usulan dikirim ke LPPM untuk diperiksa kelengkapannya.', '#3b82f6'],
+        ['approved_lppm', 'Persetujuan Institusi', 'Admin LPPM / Pimpinan menyetujui usulan yang layak lanjut.', '#6366f1'],
+        ['under_review', 'Penilaian Reviewer', 'Reviewer yang ditugaskan memberi skor dan rekomendasi.', '#8b5cf6'],
+        ['funded', 'Penetapan Pendanaan', 'LPPM menetapkan status pendanaan dan nomor SK.', '#22c55e'],
+        ['in_progress', 'Pelaksanaan & Monev', 'Kegiatan berjalan; dosen mengunggah laporan kemajuan.', '#14b8a6'],
+        ['reported', 'Pelaporan Akhir', 'Laporan akhir diserahkan dan diverifikasi.', '#0ea5e9'],
+        ['output_validated', 'Validasi Luaran', 'Bukti luaran (publikasi/HKI/produk) divalidasi LPPM.', '#f59e0b'],
     ];
 
     $peran = [
@@ -18,15 +18,30 @@
     ];
 
     $rp = fn ($n) => 'Rp ' . number_format((float) $n, 0, ',', '.');
+
+    $appName = $branding['app_name'] ?? 'SIP2M';
+    $logoUrl = $branding['logo_url'] ?? asset('images/logo-sip2m.svg');
+    $primary = $branding['primary_color'] ?? '#3B5BD9';
+    $heroTitle = $branding['hero_title'] ?: 'Kelola usulan penelitian & pengabdian dalam satu alur terpadu';
+    $heroSubtitle = $branding['hero_subtitle'] ?: 'Dari pengajuan usulan oleh dosen, persetujuan pimpinan, penilaian reviewer, penetapan pendanaan, hingga monitoring dan validasi luaran — semuanya tercatat dan terpantau.';
+    $faviconUrl = $branding['favicon_url'] ?? asset('images/favicon.svg');
+
+    $nav = [
+        ['#beranda', 'Beranda'],
+        ['#alur', 'Alur Layanan'],
+        ['#peran', 'Peran Pengguna'],
+        ['#pengumuman', 'Pengumuman'],
+    ];
 @endphp
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SIP2M &mdash; Sistem Informasi Penelitian &amp; Pengabdian</title>
+    <title>{{ $appName }} &mdash; Sistem Informasi Penelitian &amp; Pengabdian</title>
     <meta name="description" content="Portal pengelolaan usulan penelitian dan pengabdian kepada masyarakat untuk lingkungan LPPM/LP2M.">
-    <link rel="icon" href="{{ asset('images/favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ $faviconUrl }}" sizes="any">
+    <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -34,108 +49,214 @@
                 extend: {
                     colors: {
                         brand: {
-                            50:'#eef5fc',100:'#d6e6f7',200:'#aecdef',300:'#7fb0e4',
-                            400:'#4d8ed4',500:'#2b73bd',600:'#1B5E9C',700:'#164e82',
-                            800:'#123f69',900:'#0f3454',
+                            50:'#eef2fe',100:'#dbe3fd',200:'#b9c8fb',300:'#8fa5f6',400:'#6b83ee',
+                            500:'{{ $primary }}',600:'{{ $primary }}',700:'{{ $primary }}',
+                            800:'#2f43b8',900:'#26327d',950:'#161d4a',
                         },
-                        gold: { 400:'#F4B740', 500:'#e0a52c' },
+                        accent: { 300:'#c4b5fd',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed' },
+                        gold:   { 300:'#f8d99a',400:'#F4B740',500:'#e0a52c' },
                     },
-                    fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','Segoe UI','Roboto','sans-serif'] },
+                    fontFamily: {
+                        sans: ['Inter','ui-sans-serif','system-ui','Segoe UI','Roboto','sans-serif'],
+                        display: ['"Plus Jakarta Sans"','Inter','ui-sans-serif','system-ui','sans-serif'],
+                    },
+                    keyframes: {
+                        drift: { '0%,100%':{transform:'translate3d(0,0,0) scale(1)'}, '50%':{transform:'translate3d(0,-28px,0) scale(1.08)'} },
+                        driftx:{ '0%,100%':{transform:'translate3d(0,0,0)'}, '50%':{transform:'translate3d(34px,18px,0)'} },
+                        shimmer:{ '0%':{backgroundPosition:'0% 50%'}, '100%':{backgroundPosition:'200% 50%'} },
+                        floaty: { '0%,100%':{transform:'translateY(0) rotate(-1.5deg)'}, '50%':{transform:'translateY(-14px) rotate(-1.5deg)'} },
+                    },
+                    animation: {
+                        drift:'drift 14s ease-in-out infinite',
+                        driftx:'driftx 18s ease-in-out infinite',
+                        shimmer:'shimmer 6s linear infinite',
+                        floaty:'floaty 7s ease-in-out infinite',
+                    },
                 },
             },
         };
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         [x-cloak]{display:none}
-        .hero-grid{background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:44px 44px}
+        .grid-lines{
+            background-image:linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),
+                             linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);
+            background-size:48px 48px;
+            -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 0%,#000 40%,transparent 100%);
+                    mask-image:radial-gradient(ellipse 80% 70% at 50% 0%,#000 40%,transparent 100%);
+        }
+        .noise{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+        .gradient-text{
+            background:linear-gradient(100deg,#ffffff 0%,#dbe6ff 35%,#f8d99a 75%,#ffffff 100%);
+            background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+            animation:shimmer 6s linear infinite;
+        }
+        .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+        .reveal.in{opacity:1;transform:none}
+        .reveal[data-d="1"]{transition-delay:.08s}.reveal[data-d="2"]{transition-delay:.16s}
+        .reveal[data-d="3"]{transition-delay:.24s}.reveal[data-d="4"]{transition-delay:.32s}
+        #site-header{transition:background-color .3s,box-shadow .3s,border-color .3s}
+        #site-header.scrolled{background-color:rgba(255,255,255,.92);backdrop-filter:blur(12px);box-shadow:0 10px 30px -12px rgba(15,23,42,.15);border-color:rgb(226 232 240)}
+        @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
     </style>
 </head>
-<body class="bg-slate-50 text-slate-700 antialiased">
+<body class="bg-slate-50 font-sans text-slate-700 antialiased selection:bg-brand-600 selection:text-white">
 
     {{-- Top strip --}}
-    <div class="bg-brand-800 text-brand-100 text-xs">
-        <div class="mx-auto max-w-7xl px-4 py-2 flex items-center justify-between">
-            <span class="hidden sm:block">Lembaga Penelitian &amp; Pengabdian kepada Masyarakat</span>
-            <span class="sm:hidden">LPPM</span>
-            <span>Tahun Anggaran {{ $tahunAktif }}</span>
+    <div class="bg-brand-950 text-brand-100/80 text-[11px] sm:text-xs">
+        <div class="mx-auto max-w-7xl px-4 py-2 flex items-center justify-between gap-3">
+            <span class="truncate">{{ $footer['lembaga'] ?: 'Lembaga Penelitian & Pengabdian kepada Masyarakat' }}</span>
+            <span class="shrink-0 inline-flex items-center gap-1.5">
+                <span class="h-1.5 w-1.5 rounded-full bg-gold-400 animate-pulse"></span>
+                Tahun Anggaran {{ $tahunAktif }}
+            </span>
         </div>
     </div>
 
     {{-- Header --}}
-    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
-        <div class="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between gap-4">
-            <a href="#" class="flex items-center gap-3">
-                <img src="{{ asset('images/logo-sip2m.svg') }}" alt="SIP2M" class="h-9 w-9">
-                <span class="leading-tight">
-                    <span class="block font-extrabold text-slate-900 tracking-tight text-lg">SIP2M</span>
-                    <span class="block text-[11px] text-slate-500">Sistem Informasi Penelitian &amp; Pengabdian</span>
-                </span>
+    <header id="site-header" class="sticky top-0 z-40 border-b border-transparent bg-white/70 backdrop-blur">
+        <div class="mx-auto max-w-7xl px-4 h-16 md:h-20 flex items-center justify-between gap-4">
+            <a href="#beranda" class="flex items-center shrink-0">
+                <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-10 md:h-14 w-auto max-w-[240px] object-contain">
             </a>
-            <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
-                <a href="#beranda" class="hover:text-brand-600">Beranda</a>
-                <a href="#alur" class="hover:text-brand-600">Alur Layanan</a>
-                <a href="#peran" class="hover:text-brand-600">Peran Pengguna</a>
-                <a href="#pengumuman" class="hover:text-brand-600">Pengumuman</a>
+
+            <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-slate-600">
+                @foreach ($nav as [$href, $label])
+                    <a href="{{ $href }}" class="rounded-lg px-3 py-2 transition hover:bg-brand-50 hover:text-brand-700">{{ $label }}</a>
+                @endforeach
             </nav>
-            <a href="{{ url('/admin') }}"
-               class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 transition">
-                Masuk ke Sistem
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </a>
+
+            <div class="flex items-center gap-2">
+                <a href="{{ url('/admin') }}"
+                   class="hidden sm:inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-brand-600 to-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition hover:shadow-xl hover:shadow-brand-600/30 hover:-translate-y-0.5">
+                    Masuk ke Sistem
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </a>
+                <button id="menu-btn" type="button" class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100" aria-label="Menu">
+                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white px-4 py-3">
+            @foreach ($nav as [$href, $label])
+                <a href="{{ $href }}" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">{{ $label }}</a>
+            @endforeach
+            <a href="{{ url('/admin') }}" class="mt-1 block rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white">Masuk ke Sistem</a>
         </div>
     </header>
 
     {{-- Hero --}}
-    <section id="beranda" class="relative overflow-hidden bg-brand-700 text-white">
-        <div class="absolute inset-0 hero-grid opacity-60"></div>
-        <div class="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-500/40 blur-3xl"></div>
-        <div class="absolute -left-32 bottom-0 h-80 w-80 rounded-full bg-gold-400/20 blur-3xl"></div>
-        <div class="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
-            <div class="max-w-3xl">
-                <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium ring-1 ring-white/20">
-                    <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span>
-                    Platform internal LPPM &mdash; terinspirasi alur kerja BIMA
-                </span>
-                <h1 class="mt-5 text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">
-                    Kelola usulan penelitian &amp; pengabdian dalam satu alur terpadu
-                </h1>
-                <p class="mt-5 text-lg text-brand-100/90 max-w-2xl">
-                    Dari pengajuan usulan oleh dosen, persetujuan pimpinan, penilaian reviewer,
-                    penetapan pendanaan, hingga monitoring dan validasi luaran &mdash; semuanya
-                    tercatat dan terpantau.
-                </p>
-                <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="{{ url('/admin') }}"
-                       class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-brand-700 shadow hover:bg-brand-50 transition">
-                        Masuk / Ajukan Usulan
-                    </a>
-                    <a href="#alur"
-                       class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/25 hover:bg-white/15 transition">
-                        Pelajari Alur Layanan
-                    </a>
+    <section id="beranda" class="relative overflow-hidden bg-brand-950 text-white">
+        <div class="pointer-events-none absolute inset-0">
+            <div class="absolute inset-0 grid-lines"></div>
+            <div class="absolute -left-32 -top-24 h-[26rem] w-[26rem] rounded-full bg-brand-500/35 blur-3xl animate-drift"></div>
+            <div class="absolute right-[-10rem] top-10 h-[24rem] w-[24rem] rounded-full bg-accent-500/30 blur-3xl animate-driftx"></div>
+            <div class="absolute left-1/3 bottom-[-12rem] h-[22rem] w-[22rem] rounded-full bg-gold-400/20 blur-3xl animate-drift"></div>
+            <div class="absolute inset-0 noise opacity-[.03]"></div>
+        </div>
+
+        <div class="relative mx-auto max-w-7xl px-4 pt-16 pb-24 md:pt-24 md:pb-32">
+            <div class="grid items-center gap-12 lg:grid-cols-[1.05fr_.95fr]">
+                {{-- Copy --}}
+                <div class="reveal">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-medium ring-1 ring-inset ring-white/20 backdrop-blur">
+                        <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span>
+                        Platform internal LPPM &mdash; alur kerja bergaya BIMA
+                    </span>
+                    <h1 class="mt-6 font-display text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl md:text-6xl">
+                        <span class="gradient-text">{{ $heroTitle }}</span>
+                    </h1>
+                    <p class="mt-6 max-w-xl text-base leading-relaxed text-brand-100/85 md:text-lg">
+                        {{ $heroSubtitle }}
+                    </p>
+                    <div class="mt-9 flex flex-wrap gap-3">
+                        <a href="{{ url('/admin') }}"
+                           class="group inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-brand-800 shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:shadow-2xl">
+                            Masuk / Ajukan Usulan
+                            <svg class="h-4 w-4 transition group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                        <a href="#alur"
+                           class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/25 backdrop-blur transition hover:bg-white/15">
+                            Pelajari Alur Layanan
+                        </a>
+                    </div>
+                    <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-brand-100/70">
+                        @foreach (['8 tahap alur terpadu','Riwayat status otomatis','Akses berbasis peran'] as $chip)
+                            <span class="inline-flex items-center gap-2">
+                                <svg class="h-4 w-4 text-gold-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 13 4 4L19 7"/></svg>
+                                {{ $chip }}
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Glass preview card --}}
+                <div class="reveal" data-d="2">
+                    <div class="relative mx-auto max-w-md animate-floaty">
+                        <div class="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-white/20 to-transparent blur-2xl"></div>
+                        <div class="relative rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-white">
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm7 1v4h4"/></svg>
+                                    </span>
+                                    <div class="leading-tight">
+                                        <div class="text-sm font-semibold text-white">Usulan Penelitian</div>
+                                        <div class="text-[11px] text-brand-100/70">TA {{ $tahunAktif }} &middot; Riset Dasar</div>
+                                    </div>
+                                </div>
+                                <span class="rounded-full bg-emerald-400/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300 ring-1 ring-inset ring-emerald-300/30">Didanai</span>
+                            </div>
+
+                            <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                                <div class="h-full w-[62%] rounded-full bg-gradient-to-r from-gold-400 to-emerald-400"></div>
+                            </div>
+
+                            <ul class="mt-4 space-y-2.5">
+                                @foreach (array_slice($alur, 0, 5) as $i => [$k, $j, $d, $c])
+                                    <li class="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2">
+                                        <span class="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white/10" style="background:{{ $c }}"></span>
+                                        <span class="text-xs font-medium text-white/90">{{ $j }}</span>
+                                        <svg class="ml-auto h-4 w-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 13 4 4L19 7"/></svg>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+
+                        <div class="absolute -bottom-6 -left-6 hidden rounded-2xl border border-white/15 bg-brand-900/80 p-4 shadow-xl backdrop-blur-xl sm:block">
+                            <div class="text-2xl font-extrabold text-white" data-count="{{ (int) $stats['didanai'] }}">{{ number_format($stats['didanai'], 0, ',', '.') }}</div>
+                            <div class="text-[10px] font-medium uppercase tracking-wide text-brand-100/70">Usulan Didanai</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-50 to-transparent"></div>
     </section>
 
-    {{-- Stats band --}}
-    <section class="relative -mt-10 z-10">
+    {{-- Stats --}}
+    <section class="relative z-10 -mt-14">
         <div class="mx-auto max-w-7xl px-4">
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px overflow-hidden rounded-2xl bg-slate-200 shadow-lg ring-1 ring-slate-200">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6">
                 @foreach ([
-                    ['Total Usulan', number_format($stats['usulan'], 0, ',', '.')],
-                    ['Usulan Didanai', number_format($stats['didanai'], 0, ',', '.')],
-                    ['Dosen Terdaftar', number_format($stats['dosen'], 0, ',', '.')],
-                    ['Reviewer', number_format($stats['reviewer'], 0, ',', '.')],
-                    ['Skema Aktif', number_format($stats['skema_aktif'], 0, ',', '.')],
-                    ['Dana Tersalur', $rp($stats['dana'])],
-                ] as [$label, $value])
-                    <div class="bg-white px-5 py-6 text-center">
-                        <div class="text-2xl font-extrabold text-brand-700 tracking-tight break-words">{{ $value }}</div>
-                        <div class="mt-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">{{ $label }}</div>
+                    ['Total Usulan', (int) $stats['usulan'], true, 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'],
+                    ['Usulan Didanai', (int) $stats['didanai'], true, 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'],
+                    ['Dosen Terdaftar', (int) $stats['dosen'], true, 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'],
+                    ['Reviewer', (int) $stats['reviewer'], true, 'M9 11H5a2 2 0 0 0-2 2v7h6M15 7h4a2 2 0 0 1 2 2v11h-6M9 11V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6'],
+                    ['Skema Aktif', (int) $stats['skema_aktif'], true, 'M4 4h7v7H4zM13 4h7v7h-7zM13 13h7v7h-7zM4 13h7v7H4z'],
+                    ['Dana Tersalur', $rp($stats['dana']), false, 'M2 10h20M6 15h4M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z'],
+                ] as $i => [$label, $value, $isNum, $icon])
+                    <div class="reveal rounded-2xl border border-slate-200/70 bg-white/80 p-4 text-center shadow-sm ring-1 ring-white/50 backdrop-blur transition hover:-translate-y-1 hover:shadow-lg" data-d="{{ min($i + 1, 4) }}">
+                        <span class="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
+                        </span>
+                        <div @if ($isNum) data-count="{{ $value }}" @endif
+                             class="mt-2.5 break-words text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{{ $isNum ? number_format($value, 0, ',', '.') : $value }}</div>
+                        <div class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{ $label }}</div>
                     </div>
                 @endforeach
             </div>
@@ -143,39 +264,52 @@
     </section>
 
     {{-- Alur --}}
-    <section id="alur" class="py-20">
+    <section id="alur" class="py-20 md:py-28">
         <div class="mx-auto max-w-7xl px-4">
-            <div class="max-w-2xl">
-                <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Alur Layanan</h2>
-                <p class="mt-3 text-slate-600">Delapan tahap siklus usulan, dari draf hingga luaran tervalidasi. Setiap perpindahan status tercatat otomatis pada riwayat usulan.</p>
+            <div class="reveal max-w-2xl">
+                <span class="text-xs font-bold uppercase tracking-widest text-brand-600">Siklus Usulan</span>
+                <h2 class="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">Alur Layanan</h2>
+                <p class="mt-3 text-slate-600">Delapan tahap dari draf hingga luaran tervalidasi. Setiap perpindahan status tercatat otomatis pada riwayat usulan.</p>
             </div>
-            <ol class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach ($alur as $i => [$key, $judul, $desc])
-                    <li class="relative rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">{{ $i + 1 }}</span>
-                            <h3 class="font-semibold text-slate-900 leading-tight">{{ $judul }}</h3>
-                        </div>
-                        <p class="mt-3 text-sm text-slate-600">{{ $desc }}</p>
-                    </li>
-                @endforeach
-            </ol>
+
+            <div class="relative mt-14">
+                <div class="pointer-events-none absolute left-0 right-0 top-5 hidden h-px bg-gradient-to-r from-transparent via-brand-300 to-transparent lg:block"></div>
+                <ol class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    @foreach ($alur as $i => [$key, $judul, $desc, $color])
+                        <li class="reveal group relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-brand-300 hover:shadow-xl" data-d="{{ ($i % 4) + 1 }}">
+                            <div class="flex items-center gap-3">
+                                <span class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold text-white shadow-lg"
+                                      style="background:linear-gradient(135deg,{{ $color }},{{ $color }}cc)">
+                                    {{ $i + 1 }}
+                                    <span class="absolute inset-0 rounded-xl ring-2 ring-inset ring-white/25"></span>
+                                </span>
+                                <h3 class="font-semibold leading-tight text-slate-900">{{ $judul }}</h3>
+                            </div>
+                            <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ $desc }}</p>
+                            <span class="mt-4 inline-block rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-500">{{ $key }}</span>
+                        </li>
+                    @endforeach
+                </ol>
+            </div>
         </div>
     </section>
 
     {{-- Peran --}}
-    <section id="peran" class="py-20 bg-white border-y border-slate-200">
+    <section id="peran" class="border-y border-slate-200 bg-white py-20 md:py-28">
         <div class="mx-auto max-w-7xl px-4">
-            <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Peran Pengguna</h2>
-            <p class="mt-3 max-w-2xl text-slate-600">Akses dan wewenang dibatasi per peran. Satu akun dapat memegang lebih dari satu peran.</p>
-            <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach ($peran as [$nama, $desc, $path])
-                    <div class="rounded-xl border border-slate-200 p-6 hover:border-brand-300 hover:shadow-md transition">
-                        <span class="flex h-11 w-11 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+            <div class="reveal max-w-2xl">
+                <span class="text-xs font-bold uppercase tracking-widest text-brand-600">Hak Akses</span>
+                <h2 class="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">Peran Pengguna</h2>
+                <p class="mt-3 text-slate-600">Akses dan wewenang dibatasi per peran. Satu akun dapat memegang lebih dari satu peran.</p>
+            </div>
+            <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                @foreach ($peran as $i => [$nama, $desc, $path])
+                    <div class="reveal group rounded-2xl border border-slate-200 p-6 transition hover:-translate-y-1 hover:border-transparent hover:shadow-xl hover:ring-1 hover:ring-brand-200" data-d="{{ $i + 1 }}">
+                        <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-accent-600 text-white shadow-lg shadow-brand-600/25 transition group-hover:scale-105">
                             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="{{ $path }}"/></svg>
                         </span>
                         <h3 class="mt-4 font-semibold text-slate-900">{{ $nama }}</h3>
-                        <p class="mt-2 text-sm text-slate-600">{{ $desc }}</p>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $desc }}</p>
                     </div>
                 @endforeach
             </div>
@@ -183,73 +317,133 @@
     </section>
 
     {{-- Pengumuman --}}
-    <section id="pengumuman" class="py-20">
+    <section id="pengumuman" class="py-20 md:py-28">
         <div class="mx-auto max-w-7xl px-4">
-            <div class="flex items-end justify-between gap-4">
-                <div>
-                    <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Pengumuman</h2>
-                    <p class="mt-3 text-slate-600">Informasi terbaru seputar periode usulan dan pelaksanaan.</p>
-                </div>
+            <div class="reveal max-w-2xl">
+                <span class="text-xs font-bold uppercase tracking-widest text-brand-600">Kabar Terbaru</span>
+                <h2 class="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">Pengumuman</h2>
+                <p class="mt-3 text-slate-600">Informasi terbaru seputar periode usulan dan pelaksanaan.</p>
             </div>
-            <div class="mt-12 grid gap-6 md:grid-cols-3">
-                @foreach (config('sip2m.announcements', []) as $a)
-                    <article class="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <time class="text-xs font-semibold uppercase tracking-wide text-brand-600">{{ $a['tanggal'] }}</time>
-                        <h3 class="mt-2 font-semibold text-slate-900">{{ $a['judul'] }}</h3>
-                        <p class="mt-2 text-sm text-slate-600 flex-1">{{ $a['isi'] }}</p>
+            <div class="mt-14 grid gap-6 md:grid-cols-3">
+                @forelse ($announcements as $i => $a)
+                    <article class="reveal group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl" data-d="{{ $i + 1 }}">
+                        <div class="h-1.5 bg-gradient-to-r from-brand-600 via-accent-500 to-gold-400"></div>
+                        <div class="flex flex-1 flex-col p-6">
+                            <time class="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                                {{ $a->tanggal_terbit?->translatedFormat('j F Y') }}
+                            </time>
+                            <h3 class="mt-2 font-semibold text-slate-900 group-hover:text-brand-700">{{ $a->judul }}</h3>
+                            <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit(strip_tags($a->isi), 170) }}</p>
+                            @if ($a->lampiranUrl())
+                                <a href="{{ $a->lampiranUrl() }}" target="_blank" rel="noopener"
+                                   class="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline">
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>
+                                    Unduh PDF
+                                </a>
+                            @endif
+                        </div>
                     </article>
-                @endforeach
+                @empty
+                    <p class="text-slate-500">Belum ada pengumuman.</p>
+                @endforelse
             </div>
         </div>
     </section>
 
     {{-- CTA --}}
-    <section class="bg-brand-700">
-        <div class="mx-auto max-w-7xl px-4 py-14 flex flex-col md:flex-row items-center justify-between gap-6 text-white">
-            <div>
-                <h2 class="text-2xl font-extrabold tracking-tight">Siap mengajukan usulan?</h2>
-                <p class="mt-2 text-brand-100/90">Masuk dengan akun institusi Anda untuk memulai.</p>
+    <section class="relative overflow-hidden bg-brand-950 text-white">
+        <div class="pointer-events-none absolute inset-0">
+            <div class="absolute inset-0 grid-lines opacity-70"></div>
+            <div class="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent-500/30 blur-3xl animate-drift"></div>
+            <div class="absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-brand-500/30 blur-3xl animate-driftx"></div>
+        </div>
+        <div class="relative mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 py-16 text-center md:flex-row md:text-left">
+            <div class="reveal">
+                <h2 class="font-display text-2xl font-extrabold tracking-tight md:text-3xl">Siap mengajukan usulan?</h2>
+                <p class="mt-2 text-brand-100/85">Masuk dengan akun institusi Anda untuk memulai.</p>
             </div>
             <a href="{{ url('/admin') }}"
-               class="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow hover:bg-brand-50 transition">
+               class="reveal inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-semibold text-brand-800 shadow-xl shadow-black/20 transition hover:-translate-y-0.5" data-d="1">
                 Masuk ke Sistem
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </a>
         </div>
     </section>
 
     {{-- Footer --}}
     <footer class="bg-slate-900 text-slate-400">
-        <div class="mx-auto max-w-7xl px-4 py-14 grid gap-10 md:grid-cols-3">
+        <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-3">
             <div>
-                <div class="flex items-center gap-3">
-                    <img src="{{ asset('images/logo-sip2m.svg') }}" alt="SIP2M" class="h-9 w-9">
-                    <span class="font-extrabold text-white text-lg">SIP2M</span>
-                </div>
-                <p class="mt-4 text-sm max-w-xs">Sistem Informasi Penelitian &amp; Pengabdian kepada Masyarakat &mdash; lingkungan internal LPPM/LP2M institusi.</p>
+                <span class="inline-flex rounded-xl bg-white/95 px-3 py-2 shadow-sm">
+                    <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-9 w-auto max-w-[170px] object-contain">
+                </span>
+                @if ($footer['deskripsi'])
+                    <p class="mt-5 max-w-xs text-sm leading-relaxed">{{ $footer['deskripsi'] }}</p>
+                @endif
             </div>
             <div>
                 <h4 class="text-sm font-semibold text-white">Navigasi</h4>
-                <ul class="mt-4 space-y-2 text-sm">
-                    <li><a href="#alur" class="hover:text-white">Alur Layanan</a></li>
-                    <li><a href="#peran" class="hover:text-white">Peran Pengguna</a></li>
-                    <li><a href="#pengumuman" class="hover:text-white">Pengumuman</a></li>
-                    <li><a href="{{ url('/admin') }}" class="hover:text-white">Masuk ke Sistem</a></li>
+                <ul class="mt-4 space-y-2.5 text-sm">
+                    <li><a href="#alur" class="transition hover:text-white">Alur Layanan</a></li>
+                    <li><a href="#peran" class="transition hover:text-white">Peran Pengguna</a></li>
+                    <li><a href="#pengumuman" class="transition hover:text-white">Pengumuman</a></li>
+                    <li><a href="{{ url('/admin') }}" class="transition hover:text-white">Masuk ke Sistem</a></li>
                 </ul>
             </div>
             <div>
                 <h4 class="text-sm font-semibold text-white">Kontak</h4>
-                <ul class="mt-4 space-y-2 text-sm">
-                    <li>LPPM &mdash; Gedung Rektorat</li>
-                    <li>lppm@institusi.ac.id</li>
+                <ul class="mt-4 space-y-2.5 text-sm">
+                    @if ($footer['lembaga'])<li>{{ $footer['lembaga'] }}</li>@endif
+                    @if ($footer['alamat'])<li>{{ $footer['alamat'] }}</li>@endif
+                    @if ($footer['telepon'])<li>{{ $footer['telepon'] }}</li>@endif
+                    @if ($footer['email'])<li><a href="mailto:{{ $footer['email'] }}" class="transition hover:text-white">{{ $footer['email'] }}</a></li>@endif
                 </ul>
             </div>
         </div>
         <div class="border-t border-slate-800">
-            <div class="mx-auto max-w-7xl px-4 py-5 text-xs flex flex-col sm:flex-row items-center justify-between gap-2">
-                <span>&copy; {{ date('Y') }} LPPM. Seluruh hak cipta dilindungi.</span>
-                <span>Dibangun dengan Laravel &amp; Filament.</span>
+            <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs sm:flex-row">
+                <span>&copy; {{ date('Y') }} {{ $footer['copyright'] ?: $appName }}. Seluruh hak cipta dilindungi.</span>
+                <span class="font-semibold text-slate-300">{{ $appName }}</span>
             </div>
         </div>
     </footer>
+
+    <script>
+        (function () {
+            var header = document.getElementById('site-header');
+            var onScroll = function () { header.classList.toggle('scrolled', window.scrollY > 8); };
+            onScroll();
+            window.addEventListener('scroll', onScroll, { passive: true });
+
+            var btn = document.getElementById('menu-btn');
+            var menu = document.getElementById('mobile-menu');
+            if (btn && menu) {
+                btn.addEventListener('click', function () { menu.classList.toggle('hidden'); });
+                menu.querySelectorAll('a').forEach(function (a) {
+                    a.addEventListener('click', function () { menu.classList.add('hidden'); });
+                });
+            }
+
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (!e.isIntersecting) return;
+                    var el = e.target;
+                    el.classList.add('in');
+                    if (el.dataset.count !== undefined) {
+                        var target = parseInt(el.dataset.count, 10) || 0, dur = 1100, t0 = performance.now();
+                        var tick = function (now) {
+                            var p = Math.min((now - t0) / dur, 1);
+                            el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString('id-ID');
+                            if (p < 1) requestAnimationFrame(tick);
+                        };
+                        requestAnimationFrame(tick);
+                    }
+                    io.unobserve(el);
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+            document.querySelectorAll('.reveal, [data-count]').forEach(function (el) { io.observe(el); });
+        })();
+    </script>
 </body>
 </html>
