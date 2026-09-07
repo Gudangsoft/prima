@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
+use App\Enums\AnnouncementType;
 use App\Filament\Resources\AnnouncementResource\Pages;
 use App\Models\Announcement;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -40,9 +42,28 @@ class AnnouncementResource extends Resource
             Forms\Components\Section::make()
                 ->columns(2)
                 ->schema([
+                    Forms\Components\Radio::make('jenis')
+                        ->label('Jenis konten')
+                        ->options(AnnouncementType::options())
+                        ->default(AnnouncementType::Pengumuman->value)
+                        ->inline()
+                        ->required()
+                        ->live()
+                        ->columnSpanFull(),
+
                     Forms\Components\TextInput::make('judul')
                         ->required()
                         ->maxLength(255)
+                        ->columnSpanFull(),
+
+                    Forms\Components\FileUpload::make('gambar_sampul')
+                        ->label('Gambar sampul')
+                        ->image()
+                        ->disk('public')
+                        ->directory('announcements/sampul')
+                        ->imageEditor()
+                        ->visible(fn (Get $get): bool => $get('jenis') === AnnouncementType::Berita->value)
+                        ->helperText('Ditampilkan sebagai gambar utama pada kartu Berita di halaman publik.')
                         ->columnSpanFull(),
 
                     Forms\Components\RichEditor::make('isi')
@@ -86,6 +107,15 @@ class AnnouncementResource extends Resource
                 Tables\Columns\IconColumn::make('disematkan')->label('')->boolean()
                     ->trueIcon('heroicon-s-bookmark')->falseIcon('')->trueColor('warning'),
 
+                Tables\Columns\TextColumn::make('jenis')
+                    ->label('Jenis')
+                    ->badge()
+                    ->formatStateUsing(fn (AnnouncementType $state): string => $state->label())
+                    ->color(fn (AnnouncementType $state): string => match ($state) {
+                        AnnouncementType::Berita => 'info',
+                        AnnouncementType::Pengumuman => 'gray',
+                    }),
+
                 Tables\Columns\TextColumn::make('judul')
                     ->label('Judul')->searchable()->limit(60)->wrap(),
 
@@ -104,6 +134,7 @@ class AnnouncementResource extends Resource
                 Tables\Columns\TextColumn::make('updated_at')->label('Diperbarui')->since()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('jenis')->label('Jenis')->options(AnnouncementType::options()),
                 Tables\Filters\TernaryFilter::make('terbit')->label('Status terbit'),
                 Tables\Filters\TernaryFilter::make('disematkan')->label('Disematkan'),
             ])

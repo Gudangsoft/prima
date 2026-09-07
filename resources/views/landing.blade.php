@@ -30,6 +30,7 @@
         ['#beranda', 'Beranda'],
         ['#alur', 'Alur Layanan'],
         ['#peran', 'Peran Pengguna'],
+        ['#berita', 'Berita'],
         ['#pengumuman', 'Pengumuman'],
     ];
 @endphp
@@ -306,6 +307,46 @@
         </div>
     </section>
 
+    {{-- Berita --}}
+    <section id="berita" class="bg-white py-20 md:py-28">
+        <div class="mx-auto max-w-7xl px-4">
+            <div class="reveal flex flex-wrap items-end justify-between gap-4">
+                <div class="max-w-2xl">
+                    <span class="text-xs font-bold uppercase tracking-widest text-brand-600">Sorotan</span>
+                    <h2 class="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">Berita</h2>
+                    <p class="mt-3 text-slate-600">Liputan kegiatan, capaian, dan momen penting LPPM.</p>
+                </div>
+                <a href="#berita" class="hidden text-sm font-semibold text-brand-600 hover:underline sm:inline-flex">Lihat semua &rarr;</a>
+            </div>
+            <div class="mt-14 grid gap-6 md:grid-cols-3">
+                @forelse ($berita as $i => $b)
+                    <article class="reveal group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl" data-d="{{ $i + 1 }}">
+                        <div class="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-accent-600">
+                            @if ($b->gambarSampulUrl())
+                                <img src="{{ $b->gambarSampulUrl() }}" alt="{{ $b->judul }}"
+                                     class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                            @else
+                                <div class="flex h-full w-full items-center justify-center">
+                                    <svg class="h-12 w-12 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16v14H4V5Zm3 3h6m-6 4h10m-10 4h7M17 8h.01"/></svg>
+                                </div>
+                            @endif
+                            <span class="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-700 shadow-sm">Berita</span>
+                        </div>
+                        <div class="flex flex-1 flex-col p-6">
+                            <time class="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                                {{ $b->tanggal_terbit?->translatedFormat('j F Y') }}
+                            </time>
+                            <h3 class="mt-2 font-semibold text-slate-900 group-hover:text-brand-700">{{ $b->judul }}</h3>
+                            <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit(strip_tags($b->isi), 140) }}</p>
+                        </div>
+                    </article>
+                @empty
+                    <p class="text-slate-500">Belum ada berita.</p>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
     {{-- Pengumuman --}}
     <section id="pengumuman" class="py-20 md:py-28">
         <div class="mx-auto max-w-7xl px-4">
@@ -376,6 +417,7 @@
                 <ul class="mt-4 space-y-2.5 text-sm">
                     <li><a href="#alur" class="transition hover:text-white">Alur Layanan</a></li>
                     <li><a href="#peran" class="transition hover:text-white">Peran Pengguna</a></li>
+                    <li><a href="#berita" class="transition hover:text-white">Berita</a></li>
                     <li><a href="#pengumuman" class="transition hover:text-white">Pengumuman</a></li>
                     <li><a href="{{ url('/admin') }}" class="transition hover:text-white">Masuk ke Sistem</a></li>
                 </ul>

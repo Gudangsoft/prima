@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\AnnouncementType;
 use App\Enums\ProposalStatus;
 use App\Enums\Role;
 use App\Models\Announcement;
@@ -36,7 +37,8 @@ class LandingController extends Controller
                 'skema_aktif' => ProposalScheme::query()->where('aktif', true)->count(),
                 'dana' => (float) FundingDecision::query()->sum('jumlah_dana'),
             ],
-            'announcements' => Announcement::query()->published()->limit(3)->get(),
+            'berita' => Announcement::query()->published()->jenis(AnnouncementType::Berita)->limit(3)->get(),
+            'announcements' => Announcement::query()->published()->jenis(AnnouncementType::Pengumuman)->limit(3)->get(),
             'tahunAktif' => (int) now()->year,
         ]);
     }

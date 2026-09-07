@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\AnnouncementResource\Pages;
 
+use App\Enums\AnnouncementType;
 use App\Filament\Resources\AnnouncementResource;
 use Filament\Actions;
+use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
 
 class ListAnnouncements extends ListRecords
@@ -16,6 +18,18 @@ class ListAnnouncements extends ListRecords
     {
         return [
             Actions\CreateAction::make()->label('Pengumuman Baru'),
+        ];
+    }
+
+    /** @return array<string, Tab> */
+    public function getTabs(): array
+    {
+        return [
+            'semua' => Tab::make('Semua'),
+            'berita' => Tab::make('Berita')
+                ->modifyQueryUsing(fn ($query) => $query->where('jenis', AnnouncementType::Berita)),
+            'pengumuman' => Tab::make('Pengumuman')
+                ->modifyQueryUsing(fn ($query) => $query->where('jenis', AnnouncementType::Pengumuman)),
         ];
     }
 }
