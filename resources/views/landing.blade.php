@@ -159,16 +159,13 @@
             <div class="absolute inset-0 noise opacity-[.03]"></div>
         </div>
 
-        <div id="hero-slider" class="relative h-[440px] sm:h-[500px] md:h-[560px]">
+        <div id="hero-slider" class="relative aspect-[4/3] overflow-hidden sm:aspect-[16/9] md:aspect-[21/9]">
             @forelse ($heroSlides as $i => $slide)
                 @php $tag = $slide->tautan ? 'a' : 'div'; @endphp
                 <{{ $tag }} @if ($slide->tautan) href="{{ $slide->tautan }}" @endif
-                    class="hero-slide absolute inset-0 overflow-hidden {{ $i === 0 ? 'z-10 opacity-100' : 'z-0 opacity-0' }} transition-opacity duration-1000 ease-in-out">
-                    {{-- Latar belakang blur mengisi ruang kosong tanpa memotong gambar asli --}}
-                    <img src="{{ $slide->gambarUrl() }}" alt="" aria-hidden="true"
-                         class="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl">
+                    class="hero-slide absolute inset-0 {{ $i === 0 ? 'z-10 opacity-100' : 'z-0 opacity-0' }} transition-opacity duration-1000 ease-in-out">
                     <img src="{{ $slide->gambarUrl() }}" alt="{{ $slide->judul ?: 'Slide' }}"
-                         class="relative h-full w-full object-contain">
+                         class="h-full w-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-brand-950/90 via-brand-950/15 to-transparent"></div>
                     @if ($slide->judul || $slide->subjudul)
                         <div class="absolute inset-0 flex items-end">
