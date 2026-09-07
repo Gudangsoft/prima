@@ -200,8 +200,8 @@
                         <div class="relative rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-white">
-                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm7 1v4h4"/></svg>
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 p-1.5 text-white">
+                                        <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-full w-full object-contain">
                                     </span>
                                     <div class="leading-tight">
                                         <div class="text-sm font-semibold text-white">Usulan Penelitian</div>
