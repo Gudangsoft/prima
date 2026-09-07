@@ -39,11 +39,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->brandName((string) Settings::get('app_name', 'SIP2M'))
             ->brandLogo($this->assetOrDefault('logo_path', 'images/logo-sip2m.svg'))
-            ->brandLogoHeight('2rem')
+            ->brandLogoHeight('3rem')
             ->favicon($this->assetOrDefault('favicon_path', 'images/favicon.svg'))
             ->login()
             ->passwordReset()
             ->profile(EditProfile::class, isSimple: false)
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->font('Nunito Sans')
             ->colors([
                 'primary' => Color::hex($primary),

@@ -6,6 +6,8 @@ namespace App\Notifications;
 
 use App\Models\Proposal;
 use App\Models\ProposalReview;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -27,7 +29,21 @@ class ReviewSubmittedNotification extends Notification implements ShouldQueue
     /** @return list<string> */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
+    }
+
+    /** @return array<string, mixed> */
+    public function toDatabase(object $notifiable): array
+    {
+        return FilamentNotification::make()
+            ->title('Hasil Penilaian Masuk')
+            ->body($this->proposal->judul)
+            ->actions([
+                Action::make('lihat')->label('Lihat Usulan')
+                    ->url("/admin/usulan/{$this->proposal->getKey()}")
+                    ->markAsRead(),
+            ])
+            ->getDatabaseMessage();
     }
 
     public function toMail(object $notifiable): MailMessage
