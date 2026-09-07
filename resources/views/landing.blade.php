@@ -161,21 +161,24 @@
 
         <div id="hero-slider" class="relative h-[560px] sm:h-[600px] md:h-[680px]">
             @forelse ($heroSlides as $i => $slide)
-                <div class="hero-slide absolute inset-0 {{ $i === 0 ? 'z-10 opacity-100' : 'z-0 opacity-0' }} transition-opacity duration-1000 ease-in-out">
-                    <img src="{{ $slide->gambarSampulUrl() }}" alt="{{ $slide->judul }}" class="h-full w-full object-cover">
+                @php $tag = $slide->tautan ? 'a' : 'div'; @endphp
+                <{{ $tag }} @if ($slide->tautan) href="{{ $slide->tautan }}" @endif
+                    class="hero-slide absolute inset-0 {{ $i === 0 ? 'z-10 opacity-100' : 'z-0 opacity-0' }} transition-opacity duration-1000 ease-in-out">
+                    <img src="{{ $slide->gambarUrl() }}" alt="{{ $slide->judul ?: 'Slide' }}" class="h-full w-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-brand-950 via-brand-950/55 to-brand-950/10"></div>
-                    <div class="absolute inset-0 flex items-end">
-                        <div class="reveal mx-auto w-full max-w-7xl px-4 pb-32 sm:pb-36 md:pb-40">
-                            <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-medium ring-1 ring-inset ring-white/20 backdrop-blur">
-                                <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span> Berita
-                            </span>
-                            <h1 class="mt-4 max-w-3xl font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl">{{ $slide->judul }}</h1>
-                            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-brand-100/85 md:text-base">
-                                {{ \Illuminate\Support\Str::limit(strip_tags($slide->isi), 140) }}
-                            </p>
+                    @if ($slide->judul || $slide->subjudul)
+                        <div class="absolute inset-0 flex items-end">
+                            <div class="reveal mx-auto w-full max-w-7xl px-4 pb-32 sm:pb-36 md:pb-40">
+                                @if ($slide->judul)
+                                    <h1 class="max-w-3xl font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl">{{ $slide->judul }}</h1>
+                                @endif
+                                @if ($slide->subjudul)
+                                    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-brand-100/85 md:text-base">{{ $slide->subjudul }}</p>
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    @endif
+                </{{ $tag }}>
             @empty
                 <div class="hero-slide absolute inset-0 z-10 opacity-100">
                     <div class="absolute inset-0 flex items-end">

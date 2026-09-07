@@ -9,6 +9,7 @@ use App\Enums\ProposalStatus;
 use App\Enums\Role;
 use App\Models\Announcement;
 use App\Models\FundingDecision;
+use App\Models\HeroSlide;
 use App\Models\Proposal;
 use App\Models\ProposalScheme;
 use App\Models\User;
@@ -37,7 +38,7 @@ class LandingController extends Controller
                 'skema_aktif' => ProposalScheme::query()->where('aktif', true)->count(),
                 'dana' => (float) FundingDecision::query()->sum('jumlah_dana'),
             ],
-            'heroSlides' => Announcement::query()->published()->jenis(AnnouncementType::Berita)->whereNotNull('gambar_sampul')->limit(5)->get(),
+            'heroSlides' => HeroSlide::query()->aktif()->limit(5)->get(),
             'berita' => Announcement::query()->published()->jenis(AnnouncementType::Berita)->limit(3)->get(),
             'announcements' => Announcement::query()->published()->jenis(AnnouncementType::Pengumuman)->limit(3)->get(),
             'tahunAktif' => (int) now()->year,

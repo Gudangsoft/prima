@@ -20,6 +20,7 @@ final class Permissions
         'proposals' => 'Usulan',
         'announcements' => 'Berita / Pengumuman',
         'prodi' => 'Program Studi',
+        'hero_slides' => 'Slider Beranda',
     ];
 
     private const ACTIONS = [
@@ -56,6 +57,7 @@ final class Permissions
             self::proposals(),
             self::announcements(),
             self::prodi(),
+            self::heroSlides(),
         )));
     }
 
@@ -68,6 +70,18 @@ final class Permissions
             'announcements.create',
             'announcements.update',
             'announcements.delete',
+        ];
+    }
+
+    /** Modul: slider beranda halaman publik (Admin LPPM). */
+    public static function heroSlides(): array
+    {
+        return [
+            'hero_slides.viewAny',
+            'hero_slides.view',
+            'hero_slides.create',
+            'hero_slides.update',
+            'hero_slides.delete',
         ];
     }
 
@@ -140,6 +154,7 @@ final class Permissions
                 ...self::schemes(),
                 ...self::announcements(),
                 ...self::prodi(),
+                ...self::heroSlides(),
                 'proposals.viewAny',
                 'proposals.view',
                 'proposals.update',
