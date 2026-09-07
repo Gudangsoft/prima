@@ -126,4 +126,17 @@ class DataPendukungTest extends TestCase
         $this->assertSame('Lektor Kepala', $existing->jabatan);
         $this->assertSame(1, User::where('nidn', '0401019001')->count());
     }
+
+    public function test_dosen_import_without_email_column_generates_placeholder(): void
+    {
+        $this->runImport(DosenImporter::class,
+            ['nidn', 'name', 'jabatan'],
+            [['nidn' => '0401019002', 'name' => 'Dr. Ani', 'jabatan' => 'Lektor']],
+        );
+
+        $user = User::where('nidn', '0401019002')->first();
+        $this->assertNotNull($user);
+        $this->assertSame('nidn0401019002@dosen.local', $user->email);
+        $this->assertTrue($user->hasRole('dosen'));
+    }
 }

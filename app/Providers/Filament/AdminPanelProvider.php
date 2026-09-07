@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Auth\EditProfile;
+use App\Filament\Auth\Login;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Kegiatan;
 use App\Filament\Pages\ModulBelumTersedia;
@@ -41,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo($this->assetOrDefault('logo_path', 'images/logo-sip2m.svg'))
             ->brandLogoHeight('3rem')
             ->favicon($this->assetOrDefault('favicon_path', 'images/favicon.svg'))
-            ->login()
+            ->login(Login::class)
             ->passwordReset()
             ->profile(EditProfile::class, isSimple: false)
             ->databaseNotifications()

@@ -38,8 +38,7 @@ class DosenImporter extends Importer
 
             ImportColumn::make('email')
                 ->label('Email')
-                ->requiredMapping()
-                ->rules(['required', 'email', 'max:255'])
+                ->rules(['nullable', 'email', 'max:255'])
                 ->example('budi@kampus.ac.id'),
 
             ImportColumn::make('phone_number')
@@ -68,15 +67,21 @@ class DosenImporter extends Importer
     public function resolveRecord(): User
     {
         $nidn = trim((string) $this->data['nidn']);
+        $email = trim((string) ($this->data['email'] ?? ''));
 
         $user = User::query()
             ->where('nidn', $nidn)
-            ->orWhere('email', $this->data['email'])
+            ->when($email !== '', fn ($query) => $query->orWhere('email', $email))
             ->first() ?? new User;
 
         if (! $user->exists) {
             $user->password = Hash::make(Str::random(16));
             $user->email_verified_at = now();
+            // Data sumber (mis. export SINTA) sering tidak menyertakan email;
+            // login tetap bisa lewat NIDN, jadi beri email placeholder.
+            $user->email = $email !== '' ? $email : 'nidn'.$nidn.'@dosen.local';
+        } elseif ($email !== '') {
+            $user->email = $email;
         }
 
         $user->nidn = $nidn;
