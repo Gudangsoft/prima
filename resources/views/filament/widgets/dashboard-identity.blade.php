@@ -28,13 +28,25 @@
                 <img src="{{ $avatarUrl }}" alt="{{ $nama }}"
                      style="width:76px;height:76px;border-radius:9999px;object-fit:cover;border:3px solid rgba(255,255,255,.5);flex-shrink:0;">
             @else
-                <svg width="150" height="104" viewBox="0 0 160 112" fill="none" style="flex-shrink:0;">
-                    <ellipse cx="80" cy="104" rx="52" ry="7" fill="#fff" opacity=".15"/>
-                    <circle cx="80" cy="30" r="16" fill="#fff" opacity=".95"/>
-                    <path d="M52 96c0-18 12-32 28-32s28 14 28 32H52Z" fill="#fff" opacity=".95"/>
-                    <g transform="rotate(-8 98 58)">
-                        <rect x="98" y="58" width="34" height="24" rx="3" fill="#fff" opacity=".95"/>
-                        <path d="M104 64h20M104 70h20M104 76h13" stroke="#3b5bd9" stroke-width="2"/>
+                <svg width="168" height="118" viewBox="0 0 200 140" fill="none" style="flex-shrink:0;">
+                    <ellipse cx="100" cy="130" rx="75" ry="7" fill="#fff" opacity=".14"/>
+
+                    {{-- Orang mengarahkan tangan ke kartu analitik --}}
+                    <circle cx="54" cy="40" r="17" fill="#fff" opacity=".97"/>
+                    <path d="M22 128c0-30 14-54 32-54s32 24 32 54H22Z" fill="#fff" opacity=".97"/>
+                    <path d="M76 90c8-14 16-24 26-30" stroke="#fff" stroke-width="12" stroke-linecap="round" opacity=".97" fill="none"/>
+                    <circle cx="102" cy="58" r="7" fill="#fff" opacity=".97"/>
+
+                    {{-- Kartu grafik melayang --}}
+                    <g transform="translate(90 14)">
+                        <rect x="0" y="0" width="96" height="74" rx="10" fill="#fff" opacity=".97"/>
+                        <rect x="14" y="44" width="10" height="20" rx="2" fill="#c7d2fe"/>
+                        <rect x="30" y="34" width="10" height="30" rx="2" fill="#a5b4fc"/>
+                        <rect x="46" y="22" width="10" height="42" rx="2" fill="#818cf8"/>
+                        <rect x="62" y="10" width="10" height="54" rx="2" fill="#4f46e5"/>
+                        <path d="M19 44 35 34 51 22 67 10" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <circle cx="86" cy="4" r="13" fill="#22c55e"/>
+                        <path d="M80 4l4 4 8-9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                     </g>
                 </svg>
             @endif
