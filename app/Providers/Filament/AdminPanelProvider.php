@@ -51,7 +51,7 @@ class AdminPanelProvider extends PanelProvider
                 'gray' => Color::Slate,
             ])
             ->topNavigation()
-            ->maxContentWidth('screen-2xl')
+            ->maxContentWidth('full')
             ->navigationGroups([
                 // Menu dosen/pengusul (gaya BIMA) — grup kosong otomatis disembunyikan
                 // untuk peran pengawas.
