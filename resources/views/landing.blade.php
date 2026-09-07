@@ -159,21 +159,45 @@
             <div class="absolute inset-0 noise opacity-[.03]"></div>
         </div>
 
-        <div class="relative mx-auto max-w-7xl px-4 pt-16 pb-24 md:pt-24 md:pb-32">
-            <div class="grid items-center gap-12 lg:grid-cols-[1.05fr_.95fr]">
-                {{-- Copy --}}
-                <div class="reveal">
-                    <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-medium ring-1 ring-inset ring-white/20 backdrop-blur">
-                        <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span>
-                        Platform internal LPPM &mdash; alur kerja bergaya BIMA
-                    </span>
-                    <h1 class="mt-6 font-display text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl md:text-6xl">
-                        <span class="gradient-text">{{ $heroTitle }}</span>
-                    </h1>
-                    <p class="mt-6 max-w-xl text-base leading-relaxed text-brand-100/85 md:text-lg">
-                        {{ $heroSubtitle }}
-                    </p>
-                    <div class="mt-9 flex flex-wrap gap-3">
+        <div id="hero-slider" class="relative h-[560px] sm:h-[600px] md:h-[680px]">
+            @forelse ($heroSlides as $i => $slide)
+                <div class="hero-slide absolute inset-0 {{ $i === 0 ? 'z-10 opacity-100' : 'z-0 opacity-0' }} transition-opacity duration-1000 ease-in-out">
+                    <img src="{{ $slide->gambarSampulUrl() }}" alt="{{ $slide->judul }}" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-brand-950 via-brand-950/55 to-brand-950/10"></div>
+                    <div class="absolute inset-0 flex items-end">
+                        <div class="reveal mx-auto w-full max-w-7xl px-4 pb-32 sm:pb-36 md:pb-40">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-medium ring-1 ring-inset ring-white/20 backdrop-blur">
+                                <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span> Berita
+                            </span>
+                            <h1 class="mt-4 max-w-3xl font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl">{{ $slide->judul }}</h1>
+                            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-brand-100/85 md:text-base">
+                                {{ \Illuminate\Support\Str::limit(strip_tags($slide->isi), 140) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="hero-slide absolute inset-0 z-10 opacity-100">
+                    <div class="absolute inset-0 flex items-end">
+                        <div class="reveal mx-auto w-full max-w-7xl px-4 pb-32 sm:pb-36 md:pb-40">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-medium ring-1 ring-inset ring-white/20 backdrop-blur">
+                                <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span> Platform internal LPPM &mdash; alur kerja bergaya BIMA
+                            </span>
+                            <h1 class="mt-4 max-w-3xl font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl">
+                                <span class="gradient-text">{{ $heroTitle }}</span>
+                            </h1>
+                            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-brand-100/85 md:text-base">
+                                {{ $heroSubtitle }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endforelse
+
+            {{-- Overlay tetap: CTA & indikator, tidak ikut memudar antar slide --}}
+            <div class="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+                <div class="mx-auto max-w-7xl px-4 pb-8 sm:pb-10">
+                    <div class="pointer-events-auto flex flex-wrap gap-3">
                         <a href="{{ url('/admin') }}"
                            class="group inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-brand-800 shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:shadow-2xl">
                             Masuk / Ajukan Usulan
@@ -184,46 +208,29 @@
                             Pelajari Alur Layanan
                         </a>
                     </div>
-                    <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-brand-100/70">
-                        @foreach (['8 tahap alur terpadu','Riwayat status otomatis','Akses berbasis peran'] as $chip)
-                            <span class="inline-flex items-center gap-2">
-                                <svg class="h-4 w-4 text-gold-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 13 4 4L19 7"/></svg>
-                                {{ $chip }}
-                            </span>
-                        @endforeach
-                    </div>
-                </div>
 
-                {{-- Glass preview card --}}
-                <div class="reveal" data-d="2">
-                    <div class="relative mx-auto max-w-md animate-floaty">
-                        <div class="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-white/20 to-transparent blur-2xl"></div>
-                        <div class="relative rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl">
-                            <div class="flex items-center justify-between">
-                                <div class="leading-tight">
-                                    <div class="text-sm font-semibold text-white">Usulan Penelitian</div>
-                                    <div class="text-[11px] text-brand-100/70">TA {{ $tahunAktif }} &middot; Riset Dasar</div>
-                                </div>
-                                <span class="rounded-full bg-emerald-400/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300 ring-1 ring-inset ring-emerald-300/30">Didanai</span>
-                            </div>
-
-                            <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                                <div class="h-full w-[62%] rounded-full bg-gradient-to-r from-gold-400 to-emerald-400"></div>
-                            </div>
-
-                            <ul class="mt-4 space-y-2.5">
-                                @foreach (array_slice($alur, 0, 5) as $i => [$k, $j, $d, $c])
-                                    <li class="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2">
-                                        <span class="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white/10" style="background:{{ $c }}"></span>
-                                        <span class="text-xs font-medium text-white/90">{{ $j }}</span>
-                                        <svg class="ml-auto h-4 w-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 13 4 4L19 7"/></svg>
-                                    </li>
-                                @endforeach
-                            </ul>
+                    @if ($heroSlides->count() > 1)
+                        <div class="pointer-events-auto mt-6 flex items-center gap-2">
+                            @foreach ($heroSlides as $i => $slide)
+                                <button type="button" data-slide-dot="{{ $i }}"
+                                        class="h-2 rounded-full transition-all {{ $i === 0 ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/70' }}"
+                                        aria-label="Slide {{ $i + 1 }}"></button>
+                            @endforeach
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
+
+            @if ($heroSlides->count() > 1)
+                <button type="button" id="hero-slider-prev" aria-label="Sebelumnya"
+                        class="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-2.5 text-white ring-1 ring-inset ring-white/20 backdrop-blur transition hover:bg-white/20 sm:left-6">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+                </button>
+                <button type="button" id="hero-slider-next" aria-label="Berikutnya"
+                        class="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-2.5 text-white ring-1 ring-inset ring-white/20 backdrop-blur transition hover:bg-white/20 sm:right-6">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
+            @endif
         </div>
 
         <div class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-50 to-transparent"></div>
@@ -446,6 +453,49 @@
             var onScroll = function () { header.classList.toggle('scrolled', window.scrollY > 8); };
             onScroll();
             window.addEventListener('scroll', onScroll, { passive: true });
+
+            var slider = document.getElementById('hero-slider');
+            if (slider) {
+                var slides = slider.querySelectorAll('.hero-slide');
+                var dots = slider.querySelectorAll('[data-slide-dot]');
+                var current = 0;
+                var timer = null;
+
+                var show = function (index) {
+                    current = (index + slides.length) % slides.length;
+                    slides.forEach(function (s, i) {
+                        s.classList.toggle('opacity-100', i === current);
+                        s.classList.toggle('z-10', i === current);
+                        s.classList.toggle('opacity-0', i !== current);
+                        s.classList.toggle('z-0', i !== current);
+                    });
+                    dots.forEach(function (d, i) {
+                        d.classList.toggle('w-6', i === current);
+                        d.classList.toggle('bg-white', i === current);
+                        d.classList.toggle('w-2', i !== current);
+                        d.classList.toggle('bg-white/40', i !== current);
+                    });
+                };
+
+                var restart = function () {
+                    if (timer) clearInterval(timer);
+                    if (slides.length > 1) timer = setInterval(function () { show(current + 1); }, 6000);
+                };
+
+                if (slides.length > 1) {
+                    dots.forEach(function (d, i) { d.addEventListener('click', function () { show(i); restart(); }); });
+
+                    var prev = document.getElementById('hero-slider-prev');
+                    var next = document.getElementById('hero-slider-next');
+                    if (prev) prev.addEventListener('click', function () { show(current - 1); restart(); });
+                    if (next) next.addEventListener('click', function () { show(current + 1); restart(); });
+
+                    slider.addEventListener('mouseenter', function () { if (timer) clearInterval(timer); });
+                    slider.addEventListener('mouseleave', restart);
+
+                    restart();
+                }
+            }
 
             var btn = document.getElementById('menu-btn');
             var menu = document.getElementById('mobile-menu');
