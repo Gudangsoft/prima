@@ -220,11 +220,6 @@
                                 @endforeach
                             </ul>
                         </div>
-
-                        <div class="absolute -bottom-6 -left-6 hidden rounded-2xl border border-white/15 bg-brand-900/80 p-4 shadow-xl backdrop-blur-xl sm:block">
-                            <div class="text-2xl font-extrabold text-white" data-count="{{ (int) $stats['didanai'] }}">{{ number_format($stats['didanai'], 0, ',', '.') }}</div>
-                            <div class="text-[10px] font-medium uppercase tracking-wide text-brand-100/70">Usulan Didanai</div>
-                        </div>
                     </div>
                 </div>
             </div>
