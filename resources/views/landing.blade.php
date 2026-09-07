@@ -159,16 +159,20 @@
             <div class="absolute inset-0 noise opacity-[.03]"></div>
         </div>
 
-        <div id="hero-slider" class="relative h-[560px] sm:h-[600px] md:h-[680px]">
+        <div id="hero-slider" class="relative h-[440px] sm:h-[500px] md:h-[560px]">
             @forelse ($heroSlides as $i => $slide)
                 @php $tag = $slide->tautan ? 'a' : 'div'; @endphp
                 <{{ $tag }} @if ($slide->tautan) href="{{ $slide->tautan }}" @endif
-                    class="hero-slide absolute inset-0 {{ $i === 0 ? 'z-10 opacity-100' : 'z-0 opacity-0' }} transition-opacity duration-1000 ease-in-out">
-                    <img src="{{ $slide->gambarUrl() }}" alt="{{ $slide->judul ?: 'Slide' }}" class="h-full w-full object-cover">
-                    <div class="absolute inset-0 bg-gradient-to-t from-brand-950 via-brand-950/55 to-brand-950/10"></div>
+                    class="hero-slide absolute inset-0 overflow-hidden {{ $i === 0 ? 'z-10 opacity-100' : 'z-0 opacity-0' }} transition-opacity duration-1000 ease-in-out">
+                    {{-- Latar belakang blur mengisi ruang kosong tanpa memotong gambar asli --}}
+                    <img src="{{ $slide->gambarUrl() }}" alt="" aria-hidden="true"
+                         class="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl">
+                    <img src="{{ $slide->gambarUrl() }}" alt="{{ $slide->judul ?: 'Slide' }}"
+                         class="relative h-full w-full object-contain">
+                    <div class="absolute inset-0 bg-gradient-to-t from-brand-950/90 via-brand-950/15 to-transparent"></div>
                     @if ($slide->judul || $slide->subjudul)
                         <div class="absolute inset-0 flex items-end">
-                            <div class="reveal mx-auto w-full max-w-7xl px-4 pb-32 sm:pb-36 md:pb-40">
+                            <div class="reveal mx-auto w-full max-w-7xl px-4 pb-24 sm:pb-28 md:pb-32">
                                 @if ($slide->judul)
                                     <h1 class="max-w-3xl font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl">{{ $slide->judul }}</h1>
                                 @endif
@@ -199,7 +203,7 @@
 
             {{-- Overlay tetap: CTA & indikator, tidak ikut memudar antar slide --}}
             <div class="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-                <div class="mx-auto max-w-7xl px-4 pb-8 sm:pb-10">
+                <div class="mx-auto max-w-7xl px-4 pb-5 sm:pb-6">
                     <div class="pointer-events-auto flex flex-wrap gap-3">
                         <a href="{{ url('/admin') }}"
                            class="group inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-brand-800 shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:shadow-2xl">
@@ -240,7 +244,7 @@
     </section>
 
     {{-- Stats --}}
-    <section class="relative z-10 -mt-14">
+    <section class="relative z-10 py-10 md:py-14">
         <div class="mx-auto max-w-7xl px-4">
             <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6">
                 @foreach ([
