@@ -44,4 +44,26 @@ class LandingController extends Controller
             'tahunAktif' => (int) now()->year,
         ]);
     }
+
+    public function berita(Announcement $announcement): View
+    {
+        abort_unless(
+            $announcement->jenis === AnnouncementType::Berita
+                && $announcement->terbit
+                && $announcement->tanggal_terbit?->lte(now()),
+            404,
+        );
+
+        return view('berita', [
+            'branding' => Settings::branding(),
+            'footer' => Settings::footer(),
+            'berita' => $announcement,
+            'lainnya' => Announcement::query()
+                ->published()
+                ->jenis(AnnouncementType::Berita)
+                ->where('id', '!=', $announcement->id)
+                ->limit(3)
+                ->get(),
+        ]);
+    }
 }

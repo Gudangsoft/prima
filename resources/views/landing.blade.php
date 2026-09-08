@@ -331,7 +331,8 @@
             </div>
             <div class="mt-14 grid gap-6 md:grid-cols-3">
                 @forelse ($berita as $i => $b)
-                    <article class="reveal group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl" data-d="{{ $i + 1 }}">
+                    <a href="{{ route('berita.show', $b) }}"
+                       class="reveal group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl" data-d="{{ $i + 1 }}">
                         <div class="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-accent-600">
                             @if ($b->gambarSampulUrl())
                                 <img src="{{ $b->gambarSampulUrl() }}" alt="{{ $b->judul }}"
@@ -349,8 +350,12 @@
                             </time>
                             <h3 class="mt-2 font-semibold text-slate-900 group-hover:text-brand-700">{{ $b->judul }}</h3>
                             <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit(strip_tags($b->isi), 140) }}</p>
+                            <span class="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 group-hover:underline">
+                                Baca Selengkapnya
+                                <svg class="h-3.5 w-3.5 transition group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </span>
                         </div>
-                    </article>
+                    </a>
                 @empty
                     <p class="text-slate-500">Belum ada berita.</p>
                 @endforelse

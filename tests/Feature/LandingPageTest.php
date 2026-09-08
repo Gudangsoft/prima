@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\AnnouncementType;
 use App\Enums\ProposalStatus;
 use App\Models\Announcement;
 use App\Models\Proposal;
@@ -62,5 +63,49 @@ class LandingPageTest extends TestCase
         ]);
 
         $this->get('/')->assertOk()->assertDontSee('Draf Rahasia');
+    }
+
+    public function test_berita_detail_page_shows_full_content_and_read_more_link(): void
+    {
+        $berita = Announcement::create([
+            'judul' => 'Kemdiktisaintek Perkuat Peran Mahasiswa',
+            'jenis' => AnnouncementType::Berita,
+            'isi' => '<p>Isi lengkap berita di sini, lebih panjang dari ringkasan.</p>',
+            'tanggal_terbit' => now()->subDay(),
+            'terbit' => true,
+        ]);
+
+        $this->get('/')->assertOk()->assertSee('Baca Selengkapnya');
+
+        $this->get(route('berita.show', $berita))
+            ->assertOk()
+            ->assertSeeText('Kemdiktisaintek Perkuat Peran Mahasiswa')
+            ->assertSee('Isi lengkap berita di sini, lebih panjang dari ringkasan.', false);
+    }
+
+    public function test_unpublished_berita_returns_404(): void
+    {
+        $berita = Announcement::create([
+            'judul' => 'Draf Berita',
+            'jenis' => AnnouncementType::Berita,
+            'isi' => '<p>x</p>',
+            'tanggal_terbit' => now(),
+            'terbit' => false,
+        ]);
+
+        $this->get(route('berita.show', $berita))->assertNotFound();
+    }
+
+    public function test_pengumuman_is_not_reachable_via_berita_route(): void
+    {
+        $pengumuman = Announcement::create([
+            'judul' => 'Pengumuman Biasa',
+            'jenis' => AnnouncementType::Pengumuman,
+            'isi' => '<p>x</p>',
+            'tanggal_terbit' => now(),
+            'terbit' => true,
+        ]);
+
+        $this->get(route('berita.show', $pengumuman))->assertNotFound();
     }
 }
