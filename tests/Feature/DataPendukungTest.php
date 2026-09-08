@@ -240,4 +240,65 @@ class DataPendukungTest extends TestCase
             [['name' => 'Tanpa Identitas']],
         );
     }
+
+    public function test_detail_dosen_action_shows_pddikti_and_sinta_summary(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        $prodi = ProgramStudi::factory()->create(['nama' => 'Sistem Komputer']);
+        $dosen = User::factory()->create([
+            'name' => 'Danang, S.Kom, M.T',
+            'nidn' => '0615098702',
+            'nuptk' => '804776566131103',
+            'program_studi_id' => $prodi->id,
+            'pendidikan_terakhir' => 'S2',
+            'jabatan' => 'Lektor',
+            'sinta_id' => '5976759',
+            'sinta_score_overall_v3' => 858.0,
+        ]);
+        $dosen->assignRole('dosen');
+
+        Livewire::test(SinkronisasiDosen::class)
+            ->mountAction('detailDosen', arguments: ['dosen' => $dosen->id])
+            ->assertOk()
+            ->assertSee('Data PDDIKTI')
+            ->assertSee('Data SINTA')
+            ->assertSee('Sistem Komputer')
+            ->assertSee('5976759')
+            ->assertFormSet(['email' => $dosen->email], 'mountedActionForm');
+    }
+
+    public function test_detail_dosen_action_updates_contact_info(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        $dosen = User::factory()->create(['email' => 'lama@dosen.local']);
+        $dosen->assignRole('dosen');
+
+        Livewire::test(SinkronisasiDosen::class)
+            ->mountAction('detailDosen', arguments: ['dosen' => $dosen->id])
+            ->setActionData(['email' => 'baru@kampus.ac.id', 'phone_number' => '0812', 'telepon' => '0271123456'])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+
+        $dosen->refresh();
+        $this->assertSame('baru@kampus.ac.id', $dosen->email);
+        $this->assertSame('0271123456', $dosen->telepon);
+    }
+
+    public function test_detail_dosen_action_blocks_duplicate_email(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        $lain = User::factory()->create(['email' => 'dipakai@kampus.ac.id']);
+        $dosen = User::factory()->create(['email' => 'lama@dosen.local']);
+        $dosen->assignRole('dosen');
+
+        Livewire::test(SinkronisasiDosen::class)
+            ->mountAction('detailDosen', arguments: ['dosen' => $dosen->id])
+            ->setActionData(['email' => $lain->email, 'phone_number' => null, 'telepon' => null])
+            ->callMountedAction();
+
+        $this->assertSame('lama@dosen.local', $dosen->refresh()->email);
+    }
 }

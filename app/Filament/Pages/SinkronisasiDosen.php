@@ -12,7 +12,10 @@ use App\Models\User;
 use App\Support\Settings;
 use Filament\Actions\Action;
 use Filament\Actions\ImportAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Support\Exceptions\Halt;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Url;
 use Livewire\WithPagination;
@@ -104,6 +107,54 @@ class SinkronisasiDosen extends Page
     public function editUrl(User $dosen): string
     {
         return UserResource::getUrl('edit', ['record' => $dosen]);
+    }
+
+    /**
+     * Modal "Detail Profil" gaya BIMA: ringkasan data PDDIKTI & SINTA (baca
+     * saja, dari data lokal — aplikasi ini tidak terhubung ke API PDDIKTI/
+     * SINTA nasional, jadi tak ada tombol sinkron langsung) plus form ringkas
+     * untuk memutakhirkan kontak dosen.
+     */
+    public function detailDosenAction(): Action
+    {
+        return Action::make('detailDosen')
+            ->label('Detail')
+            ->modalHeading('Detail Profil')
+            ->modalWidth('3xl')
+            ->modalSubmitActionLabel('Submit form')
+            ->modalContent(fn (array $arguments) => view('filament.pages.partials.detail-dosen', [
+                'dosen' => User::findOrFail($arguments['dosen']),
+                'institusi' => $this->institusi,
+            ]))
+            ->fillForm(fn (array $arguments): array => User::findOrFail($arguments['dosen'])
+                ->only(['email', 'phone_number', 'telepon']))
+            ->form([
+                TextInput::make('email')
+                    ->label('Alamat Surel')
+                    ->email()
+                    ->required(),
+                TextInput::make('phone_number')
+                    ->label('Nomor Hp')
+                    ->tel()
+                    ->maxLength(30),
+                TextInput::make('telepon')
+                    ->label('Nomor Telepon')
+                    ->tel()
+                    ->maxLength(30),
+            ])
+            ->action(function (array $arguments, array $data): void {
+                $dosen = User::findOrFail($arguments['dosen']);
+
+                if (User::where('email', $data['email'])->where('id', '!=', $dosen->id)->exists()) {
+                    Notification::make()->title('Alamat surel sudah dipakai akun lain.')->danger()->send();
+
+                    throw new Halt();
+                }
+
+                $dosen->update($data);
+
+                Notification::make()->title('Kontak dosen diperbarui')->success()->send();
+            });
     }
 
     protected function getHeaderActions(): array

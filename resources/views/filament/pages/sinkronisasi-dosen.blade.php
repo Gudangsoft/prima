@@ -27,6 +27,12 @@
             color:#fff; background:#3b5bd9; border-radius:6px; text-decoration:none; white-space:nowrap;
         }
         .sd-edit:hover { background:#2f49b0; }
+        .sd-actions { display:flex; gap:6px; flex-wrap:wrap; }
+        .sd-detail {
+            display:inline-block; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;
+            color:#3b5bd9; background:#eef2fe; border:1px solid #dbe3fd; border-radius:6px; white-space:nowrap;
+        }
+        .sd-detail:hover { background:#dbe3fd; }
     </style>
 
     <div class="sd-wrap" style="margin-bottom:20px;">
@@ -91,7 +97,12 @@
                                     <dt>Surel</dt><dd>{{ $d->email }}</dd>
                                 </dl>
                             </td>
-                            <td><a class="sd-edit" href="{{ $this->editUrl($d) }}" wire:navigate>Edit</a></td>
+                            <td>
+                                <div class="sd-actions">
+                                    <button type="button" class="sd-detail" wire:click="mountAction('detailDosen', { dosen: {{ $d->id }} })">Detail</button>
+                                    <a class="sd-edit" href="{{ $this->editUrl($d) }}" wire:navigate>Edit</a>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr><td class="sd-empty" colspan="5">Belum ada data dosen. Impor lewat tombol di atas.</td></tr>

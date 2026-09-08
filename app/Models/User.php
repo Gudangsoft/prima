@@ -41,6 +41,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'sinta_score_3yr_v3',
         'kompetensi',
         'phone_number',
+        'telepon',
         'avatar_path',
         'jabatan',
         'pendidikan_terakhir',
