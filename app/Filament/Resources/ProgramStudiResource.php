@@ -95,7 +95,6 @@ class ProgramStudiResource extends Resource
                     ->label('Dosen')
                     ->counts('dosen')
                     ->alignCenter()
-                    ->toggleable(isToggledHiddenByDefault: true)
                     ->url(fn (ProgramStudi $record): string => SinkronisasiDosen::urlUntukProdi($record->id)),
             ])
             ->filters([
