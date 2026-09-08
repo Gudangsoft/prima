@@ -41,8 +41,24 @@ class DanangDemoProposalsSeeder extends Seeder
 
         $edwin = User::role('dosen')->where('id', '!=', $danang->id)->inRandomOrder()->first();
 
-        DB::transaction(function () use ($danang, $edwin) {
-            Proposal::factory()->forDosen($danang)->forScheme(ProposalScheme::find(1))
+        // Dicocokkan berdasarkan nama skema (bukan ID) — ID auto-increment
+        // bisa berbeda antara database lokal dan produksi.
+        $skemaByName = fn (string $nama): ?ProposalScheme => ProposalScheme::where('nama_skema', $nama)->first();
+
+        $skemaDosenPemula = $skemaByName('Penelitian Dosen Pemula');
+        $skemaDasar = $skemaByName('Penelitian Dasar');
+        $skemaTerapan = $skemaByName('Penelitian Terapan');
+        $skemaKemitraan = $skemaByName('Pengabdian Kemitraan Masyarakat');
+        $skemaDesaBinaan = $skemaByName('Pengabdian Desa Binaan');
+
+        if (! $skemaDosenPemula || ! $skemaDasar || ! $skemaTerapan || ! $skemaKemitraan || ! $skemaDesaBinaan) {
+            $this->command?->error('Skema dasar (Penelitian Dosen Pemula/Dasar/Terapan, Pengabdian Kemitraan Masyarakat/Desa Binaan) belum lengkap — jalankan ProposalSchemeSeeder dahulu.');
+
+            return;
+        }
+
+        DB::transaction(function () use ($danang, $edwin, $skemaDosenPemula, $skemaDasar, $skemaTerapan, $skemaKemitraan, $skemaDesaBinaan) {
+            Proposal::factory()->forDosen($danang)->forScheme($skemaDosenPemula)
                 ->status(ProposalStatus::OutputValidated)
                 ->create([
                     'judul' => 'Sistem Pendukung Keputusan Pemilihan Bibit Unggul Berbasis Metode SAW',
@@ -51,7 +67,7 @@ class DanangDemoProposalsSeeder extends Seeder
                     'tahun_anggaran' => 2023,
                 ]);
 
-            Proposal::factory()->forDosen($danang)->forScheme(ProposalScheme::find(2))
+            Proposal::factory()->forDosen($danang)->forScheme($skemaDasar)
                 ->status(ProposalStatus::InProgress)
                 ->create([
                     'judul' => 'Rancang Bangun Aplikasi Klasifikasi Kualitas Kopi Menggunakan Convolutional Neural Network',
@@ -60,7 +76,7 @@ class DanangDemoProposalsSeeder extends Seeder
                     'tahun_anggaran' => 2024,
                 ]);
 
-            Proposal::factory()->forDosen($danang)->forScheme(ProposalScheme::find(3))
+            Proposal::factory()->forDosen($danang)->forScheme($skemaTerapan)
                 ->status(ProposalStatus::UnderReview)
                 ->create([
                     'judul' => 'Implementasi Internet of Things untuk Monitoring Kualitas Air Tambak Udang',
@@ -70,7 +86,7 @@ class DanangDemoProposalsSeeder extends Seeder
                 ]);
 
             if ($edwin) {
-                $p4 = Proposal::factory()->forDosen($edwin)->forScheme(ProposalScheme::find(1))
+                $p4 = Proposal::factory()->forDosen($edwin)->forScheme($skemaDosenPemula)
                     ->status(ProposalStatus::Rejected)
                     ->create([
                         'judul' => 'Analisis Sentimen Ulasan Produk UMKM pada Marketplace Menggunakan Naive Bayes',
@@ -89,7 +105,7 @@ class DanangDemoProposalsSeeder extends Seeder
                 ]);
             }
 
-            Proposal::factory()->forDosen($danang)->forScheme(ProposalScheme::find(4))
+            Proposal::factory()->forDosen($danang)->forScheme($skemaKemitraan)
                 ->status(ProposalStatus::Reported)
                 ->create([
                     'judul' => 'Pelatihan Digital Marketing bagi Pelaku UMKM Kelurahan Binaan',
@@ -98,7 +114,7 @@ class DanangDemoProposalsSeeder extends Seeder
                     'tahun_anggaran' => 2024,
                 ]);
 
-            Proposal::factory()->forDosen($danang)->forScheme(ProposalScheme::find(5))
+            Proposal::factory()->forDosen($danang)->forScheme($skemaDesaBinaan)
                 ->status(ProposalStatus::Submitted)
                 ->create([
                     'judul' => 'Pendampingan Penerapan Sistem Informasi Administrasi Desa Berbasis Web',
