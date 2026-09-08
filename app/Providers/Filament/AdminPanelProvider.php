@@ -5,9 +5,10 @@ namespace App\Providers\Filament;
 use App\Filament\Auth\EditProfile;
 use App\Filament\Auth\Login;
 use App\Filament\Pages\Dashboard;
-use App\Filament\Pages\Kegiatan;
 use App\Filament\Pages\ModulBelumTersedia;
+use App\Filament\Resources\ProposalResource;
 use App\Http\Middleware\EnsureOtpVerified;
+use App\Models\ProposalScheme;
 use App\Support\Settings;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -138,13 +139,14 @@ class AdminPanelProvider extends PanelProvider
         foreach (['Penelitian' => 'penelitian', 'Pengabdian' => 'pengabdian'] as $group => $kategori) {
             $sort = 0;
 
-            foreach (Kegiatan::TABS as $tab => $label) {
-                $items[] = NavigationItem::make($label)
+            // Gaya BIMA: submenu HANYA berisi skema aktif, satu item per skema ->
+            // langsung ke form pengajuan usulan baru untuk skema itu. Akses ke
+            // daftar/riwayat usulan sendiri sudah tersedia lewat widget dasbor
+            // (RiwayatUsulanCard/UsulanSayaStats), jadi tidak dirangkap di sini.
+            foreach (ProposalScheme::query()->aktif()->kategori($kategori)->orderBy('nama_skema')->get() as $skema) {
+                $items[] = NavigationItem::make($skema->nama_skema)
                     ->group($group)->sort(++$sort)->visible($isDosen)
-                    ->url(fn (): string => Kegiatan::urlFor($kategori, $tab))
-                    ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.pages.kegiatan')
-                        && request()->input('kategori') === $kategori
-                        && (request()->input('tab', 'usulan') === $tab));
+                    ->url(fn (): string => ProposalResource::getUrl('create', ['kat' => $kategori, 'scheme' => $skema->id]));
             }
         }
 

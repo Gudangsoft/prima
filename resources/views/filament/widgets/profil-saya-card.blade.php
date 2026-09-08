@@ -37,9 +37,9 @@
             </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #eef0f3;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));border-top:1px solid #eef0f3;">
             @foreach ($stats as $s)
-                <div style="padding:11px 8px;text-align:center;{{ ! $loop->last ? 'border-right:1px solid #eef0f3;' : '' }}">
+                <div style="padding:11px 8px;text-align:center;border-right:1px solid #eef0f3;border-top:1px solid #eef0f3;margin-top:-1px;">
                     <div style="font-size:10.5px;color:#6b7280;line-height:1.3;">{{ $s['label'] }}</div>
                     <div style="margin-top:5px;font-size:16px;font-weight:800;color:#2f43b8;line-height:1;">{{ $s['value'] }}</div>
                 </div>

@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\ProposalStatus;
 use App\Filament\Pages\Kegiatan;
 use App\Filament\Pages\ModulBelumTersedia;
+use App\Filament\Resources\ProposalResource;
 use App\Filament\Resources\ProposalResource\Pages\CreateProposal;
 use App\Models\Proposal;
 use App\Models\ProposalScheme;
@@ -34,7 +35,7 @@ class DosenMenuTest extends TestCase
         return $user;
     }
 
-    public function test_dosen_top_menu_mirrors_bima_tabs(): void
+    public function test_dosen_top_menu_lists_active_schemes_bima_style(): void
     {
         $this->actAs('dosen');
 
@@ -42,13 +43,45 @@ class DosenMenuTest extends TestCase
             ->assertOk()
             ->assertSee('Konsorsium')
             ->assertSee('Prototipe')
-            ->assertSee('Kekayaan Intelektual')
-            ->assertSee('Bimbingan Teknis')
-            ->assertSee('Perbaikan Usulan')
-            ->assertSee('Catatan Harian')
-            ->assertSee('Laporan Kemajuan')
-            ->assertSee('Laporan Akhir')
-            ->assertSee('Pengkinian Capaian Luaran');
+            ->assertSee('Kekayaan Intelektual');
+    }
+
+    /**
+     * dosenNavigationItems() dievaluasi sekali saat boot panel (array biasa,
+     * bukan closure — batasan API Filament), jadi di aplikasi nyata ia selalu
+     * membaca skema terbaru karena tiap request PHP-FPM mem-boot ulang app
+     * dari nol. Di dalam satu metode tes, app sudah ter-boot sebelum baris
+     * kode tes ini berjalan, jadi kita panggil method-nya langsung (bukan
+     * lewat HTTP) supaya query skema memakai data yang baru dibuat di sini.
+     */
+    public function test_dosen_menu_items_are_generated_from_active_schemes(): void
+    {
+        $pen = ProposalScheme::factory()->penelitian()->create(['nama_skema' => 'Riset Dasar Unggulan']);
+        ProposalScheme::factory()->penelitian()->nonaktif()->create(['nama_skema' => 'Riset Nonaktif Tersembunyi']);
+        $pkm = ProposalScheme::factory()->pengabdian()->create(['nama_skema' => 'PKM Kemitraan Masyarakat']);
+
+        $method = new \ReflectionMethod(\App\Providers\Filament\AdminPanelProvider::class, 'dosenNavigationItems');
+        $method->setAccessible(true);
+        $items = $method->invoke(new \App\Providers\Filament\AdminPanelProvider(app()));
+
+        $labels = array_map(fn ($item) => $item->getLabel(), $items);
+
+        $this->assertContains('Riset Dasar Unggulan', $labels);
+        $this->assertContains('PKM Kemitraan Masyarakat', $labels);
+        $this->assertNotContains('Riset Nonaktif Tersembunyi', $labels);
+        $this->assertNotContains('Kelola Usulan Saya', $labels);
+
+        $penItem = collect($items)->first(fn ($item) => $item->getLabel() === 'Riset Dasar Unggulan');
+        $this->assertSame(
+            ProposalResource::getUrl('create', ['kat' => 'penelitian', 'scheme' => $pen->id]),
+            $penItem->getUrl(),
+        );
+
+        $pkmItem = collect($items)->first(fn ($item) => $item->getLabel() === 'PKM Kemitraan Masyarakat');
+        $this->assertSame(
+            ProposalResource::getUrl('create', ['kat' => 'pengabdian', 'scheme' => $pkm->id]),
+            $pkmItem->getUrl(),
+        );
     }
 
     public function test_placeholder_menus_are_hidden_from_oversight(): void
@@ -130,6 +163,18 @@ class DosenMenuTest extends TestCase
             ->test(CreateProposal::class)
             ->assertSee($pen->nama_skema)
             ->assertSee($pkm->nama_skema);
+    }
+
+    public function test_create_form_preselects_scheme_from_menu_link(): void
+    {
+        $this->actAs('dosen');
+
+        $pen = ProposalScheme::factory()->penelitian()->create();
+
+        Livewire::withQueryParams(['kat' => 'penelitian', 'scheme' => $pen->id])
+            ->test(CreateProposal::class)
+            ->assertOk()
+            ->assertFormSet(['scheme_id' => $pen->id]);
     }
 
     public function test_modul_belum_tersedia_renders(): void

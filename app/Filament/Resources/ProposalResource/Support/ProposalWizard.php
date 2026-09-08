@@ -51,6 +51,7 @@ final class ProposalWizard
                     ->searchable()
                     ->native(false)
                     ->live()
+                    ->default(fn ($livewire): ?int => property_exists($livewire, 'scheme') ? $livewire->scheme : null)
                     ->hintAction(
                         Forms\Components\Actions\Action::make('unduhTemplateSkema')
                             ->label('Unduh Template')

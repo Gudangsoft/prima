@@ -6,6 +6,7 @@ namespace App\Filament\Resources\ProposalResource\Pages;
 
 use App\Enums\Kategori;
 use App\Filament\Resources\ProposalResource;
+use App\Models\ProposalScheme;
 use Filament\Resources\Pages\CreateRecord;
 use Livewire\Attributes\Url;
 
@@ -17,12 +18,26 @@ class CreateProposal extends CreateRecord
     #[Url]
     public ?string $kat = null;
 
+    /** Skema yang dipilih langsung dari menu dosen (klik nama skema); pra-isi field skema. */
+    #[Url]
+    public ?int $scheme = null;
+
     public function mount(): void
     {
         parent::mount();
 
         if (! array_key_exists((string) $this->kat, Kategori::options())) {
             $this->kat = null;
+        }
+
+        if ($this->scheme !== null) {
+            $skema = ProposalScheme::query()->aktif()->find($this->scheme);
+
+            if ($skema === null || ($this->kat !== null && $skema->kategori->value !== $this->kat)) {
+                $this->scheme = null;
+            } else {
+                $this->kat ??= $skema->kategori->value;
+            }
         }
     }
 

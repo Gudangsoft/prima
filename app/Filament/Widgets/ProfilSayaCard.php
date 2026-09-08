@@ -48,6 +48,8 @@ class ProfilSayaCard extends Widget
             'stats' => [
                 ['label' => 'Total Usulan', 'value' => (clone $own)->count()],
                 ['label' => 'Usulan Didanai', 'value' => (clone $own)->whereIn('status', self::DIDANAI)->count()],
+                ['label' => 'Skor SINTA', 'value' => $user->sinta_score_overall_v2 !== null ? number_format((float) $user->sinta_score_overall_v2, 0) : '—'],
+                ['label' => 'Jenjang Pendidikan', 'value' => $user->pendidikan_terakhir ?: '—'],
                 ['label' => 'Jabatan Akademik', 'value' => $user->jabatan ?: '—'],
             ],
         ];
