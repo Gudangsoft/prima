@@ -50,6 +50,15 @@ final class ProposalWizard
                     ->required()
                     ->searchable()
                     ->native(false)
+                    ->live()
+                    ->hintAction(
+                        Forms\Components\Actions\Action::make('unduhTemplateSkema')
+                            ->label('Unduh Template')
+                            ->icon('heroicon-o-arrow-down-tray')
+                            ->url(fn (Get $get): ?string => ProposalScheme::find($get('scheme_id'))?->templateUrl())
+                            ->openUrlInNewTab()
+                            ->visible(fn (Get $get): bool => filled(ProposalScheme::find($get('scheme_id'))?->template_path)),
+                    )
                     ->options(function ($livewire): array {
                         // Dari menu Penelitian/Pengabdian dosen: kunci kategori.
                         $kat = property_exists($livewire, 'kat') ? $livewire->kat : null;

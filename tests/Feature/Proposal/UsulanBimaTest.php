@@ -65,6 +65,14 @@ class UsulanBimaTest extends TestCase
             ->assertSee('Mitra');
     }
 
+    public function test_create_page_renders_with_scheme_that_has_a_template(): void
+    {
+        ProposalScheme::factory()->penelitian()->create(['template_path' => 'skema-template/contoh.pdf']);
+        $this->actAs($this->ketua);
+
+        $this->get('/admin/usulan/create')->assertOk();
+    }
+
     public function test_wizard_create_saves_identitas_and_nested_sections(): void
     {
         $scheme = ProposalScheme::factory()->penelitian()->create();

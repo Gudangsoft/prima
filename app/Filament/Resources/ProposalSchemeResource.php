@@ -51,6 +51,17 @@ class ProposalSchemeResource extends Resource
                 ->maxLength(2000)
                 ->columnSpanFull(),
 
+            Forms\Components\FileUpload::make('template_path')
+                ->label('Template usulan')
+                ->disk('public')
+                ->directory('skema-template')
+                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                ->maxSize(10240)
+                ->downloadable()
+                ->previewable(false)
+                ->helperText('Opsional. PDF/Word, maks 10 MB — akan tersedia untuk diunduh dosen saat memilih skema ini.')
+                ->columnSpanFull(),
+
             Forms\Components\Toggle::make('aktif')
                 ->label('Aktif')
                 ->helperText('Hanya skema aktif yang bisa dipilih dosen saat mengajukan usulan.')
@@ -79,6 +90,11 @@ class ProposalSchemeResource extends Resource
                     ->counts('proposals')
                     ->alignCenter()
                     ->sortable(),
+
+                Tables\Columns\IconColumn::make('template_path')
+                    ->label('Template')
+                    ->state(fn (ProposalScheme $record): bool => filled($record->template_path))
+                    ->boolean(),
 
                 Tables\Columns\ToggleColumn::make('aktif')
                     ->label('Aktif'),

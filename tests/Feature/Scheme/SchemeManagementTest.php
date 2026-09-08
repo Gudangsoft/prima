@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Scheme;
 
+use App\Filament\Resources\ProposalSchemeResource\Pages\CreateProposalScheme;
 use App\Models\ProposalScheme;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SchemeManagementTest extends TestCase
@@ -61,5 +65,29 @@ class SchemeManagementTest extends TestCase
         ProposalScheme::factory()->nonaktif()->count(2)->create();
 
         $this->assertSame(3, ProposalScheme::query()->aktif()->count());
+    }
+
+    public function test_admin_lppm_can_upload_template_for_penelitian_and_pengabdian_scheme(): void
+    {
+        Storage::fake('public');
+        $this->actingOtpVerified('admin_lppm');
+
+        foreach (['penelitian', 'pengabdian'] as $kategori) {
+            Livewire::test(CreateProposalScheme::class)
+                ->fillForm([
+                    'nama_skema' => 'Skema '.$kategori,
+                    'kategori' => $kategori,
+                    'template_path' => UploadedFile::fake()->create('template.pdf', 500, 'application/pdf'),
+                    'aktif' => true,
+                ])
+                ->call('create')
+                ->assertHasNoFormErrors();
+
+            $scheme = ProposalScheme::where('nama_skema', 'Skema '.$kategori)->first();
+            $this->assertNotNull($scheme);
+            $this->assertNotNull($scheme->template_path);
+            Storage::disk('public')->assertExists($scheme->template_path);
+            $this->assertNotNull($scheme->templateUrl());
+        }
     }
 }
