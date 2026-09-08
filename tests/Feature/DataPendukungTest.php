@@ -66,6 +66,18 @@ class DataPendukungTest extends TestCase
         $this->get('/admin/program-studi')->assertForbidden();
     }
 
+    public function test_program_studi_table_shows_status_badge(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+        ProgramStudi::factory()->create(['kode' => '11111', 'nama' => 'Aktif Prodi', 'aktif' => true]);
+        ProgramStudi::factory()->create(['kode' => '22222', 'nama' => 'Nonaktif Prodi', 'aktif' => false]);
+
+        $this->get('/admin/program-studi')
+            ->assertOk()
+            ->assertSeeText('Aktif')
+            ->assertSeeText('Non Aktif');
+    }
+
     public function test_sinkronisasi_dosen_page_is_gated(): void
     {
         $this->actingOtpVerified('admin_lppm');

@@ -68,15 +68,29 @@ class ProgramStudiResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->searchPlaceholder('Cari Nama Prodi atau Kode Prodi')
             ->columns([
-                Tables\Columns\TextColumn::make('kode')->label('Kode')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('index')
+                    ->label('No.')
+                    ->rowIndex(),
+
+                Tables\Columns\TextColumn::make('kode')->label('Kode Prodi')->searchable()->sortable(),
+
+                Tables\Columns\TextColumn::make('nama')->label('Nama Prodi')->searchable()->sortable()->wrap(),
+
                 Tables\Columns\TextColumn::make('jenjang')
                     ->badge()
+                    ->color('gray')
                     ->formatStateUsing(fn (Jenjang $state): string => $state->value),
-                Tables\Columns\TextColumn::make('nama')->label('Program Studi')->searchable()->wrap(),
-                Tables\Columns\TextColumn::make('fakultas')->searchable()->toggleable()->placeholder('—'),
-                Tables\Columns\TextColumn::make('dosen_count')->label('Dosen')->counts('dosen')->alignCenter(),
-                Tables\Columns\IconColumn::make('aktif')->boolean(),
+
+                Tables\Columns\TextColumn::make('aktif')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Non Aktif')
+                    ->color(fn (bool $state): string => $state ? 'success' : 'danger'),
+
+                Tables\Columns\TextColumn::make('fakultas')->searchable()->toggleable(isToggledHiddenByDefault: true)->placeholder('—'),
+                Tables\Columns\TextColumn::make('dosen_count')->label('Dosen')->counts('dosen')->alignCenter()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('jenjang')->options(Jenjang::options()),
