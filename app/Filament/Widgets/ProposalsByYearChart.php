@@ -23,7 +23,7 @@ class ProposalsByYearChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']) ?? false;
+        return auth()->user()?->isActingAs(['admin_lppm', 'pimpinan', 'super_admin']) ?? false;
     }
 
     protected function getType(): string

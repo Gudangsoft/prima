@@ -58,11 +58,7 @@ class Kegiatan extends Page
 
     public static function canAccess(): bool
     {
-        $user = auth()->user();
-
-        return $user !== null
-            && $user->hasRole('dosen')
-            && ! $user->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']);
+        return auth()->user()?->isActingAs('dosen') ?? false;
     }
 
     public static function urlFor(string $kategori, string $tab = 'usulan', ?int $skema = null): string

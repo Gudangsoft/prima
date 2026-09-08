@@ -3,6 +3,7 @@
 use App\Http\Controllers\FileDownloadController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\SwitchRoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
@@ -11,6 +12,11 @@ Route::get('/berita/{announcement}', [LandingController::class, 'berita'])->name
 Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])
     ->middleware('auth')
     ->name('impersonate.stop');
+
+/** Ganti "role aktif" untuk akun multi-role (lihat User::activeRole()). */
+Route::get('switch-role/{role}', SwitchRoleController::class)
+    ->middleware('auth')
+    ->name('switch-role');
 
 /*
 | Unduhan berkas privat. Butuh login; otorisasi per-usulan ada di controller.

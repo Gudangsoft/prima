@@ -7,6 +7,7 @@ use App\Filament\Auth\Login;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Kegiatan;
 use App\Filament\Pages\ModulBelumTersedia;
+use App\Enums\Role as RoleEnum;
 use App\Http\Middleware\EnsureOtpVerified;
 use App\Models\ProposalScheme;
 use App\Support\Settings;
@@ -14,6 +15,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
@@ -71,6 +73,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Pengaturan'),
             ])
             ->navigationItems($this->dosenNavigationItems())
+            ->userMenuItems($this->roleMenuItems())
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -131,8 +134,7 @@ class AdminPanelProvider extends PanelProvider
      */
     private function dosenNavigationItems(): array
     {
-        $isDosen = static fn (): bool => auth()->user()?->hasRole('dosen')
-            && ! auth()->user()->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']);
+        $isDosen = static fn (): bool => auth()->user()?->isActingAs('dosen') ?? false;
 
         $items = [];
 
@@ -158,6 +160,49 @@ class AdminPanelProvider extends PanelProvider
                 ->url(fn (): string => ModulBelumTersedia::urlFor($modul))
                 ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.pages.modul-belum-tersedia')
                     && request()->input('modul') === $modul);
+        }
+
+        return $items;
+    }
+
+    /**
+     * Status "Peran Aktif" di menu pengguna (pojok kanan atas): melabeli ulang
+     * item Profil dengan role yang sedang dipakai, plus — bila akun punya
+     * lebih dari satu role — daftar "Ganti ke ..." untuk berpindah tanpa
+     * logout. Lihat {@see \App\Models\User::activeRole()}.
+     *
+     * @return array<string, MenuItem>
+     */
+    private function roleMenuItems(): array
+    {
+        $items = [
+            'profile' => MenuItem::make()
+                ->label(function (): string {
+                    $user = auth()->user();
+                    $aktif = $user?->activeRole();
+                    $label = $aktif ? (RoleEnum::tryFrom($aktif)?->label() ?? $aktif) : null;
+
+                    return $label ? "{$user->name} · {$label}" : (string) $user?->name;
+                })
+                ->icon('heroicon-m-user-circle'),
+        ];
+
+        foreach (RoleEnum::cases() as $role) {
+            $items['ganti-peran-'.$role->value] = MenuItem::make()
+                ->label('Ganti ke: '.$role->label())
+                ->icon('heroicon-m-arrow-path')
+                ->color('gray')
+                ->url(fn (): string => route('switch-role', $role->value))
+                ->visible(function () use ($role): bool {
+                    $user = auth()->user();
+
+                    // Hanya tampil bila akun benar-benar punya role itu, ada
+                    // >1 role total, dan bukan role yang sedang aktif.
+                    return $user !== null
+                        && $user->getRoleNames()->count() > 1
+                        && $user->hasRole($role->value)
+                        && $user->activeRole() !== $role->value;
+                });
         }
 
         return $items;

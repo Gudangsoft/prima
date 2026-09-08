@@ -52,7 +52,7 @@ class PengaturanWeb extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return auth()->user()?->isActingAs('super_admin') ?? false;
     }
 
     public function mount(): void

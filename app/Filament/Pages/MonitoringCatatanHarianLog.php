@@ -41,7 +41,7 @@ class MonitoringCatatanHarianLog extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']) ?? false;
+        return auth()->user()?->isActingAs(['admin_lppm', 'pimpinan', 'super_admin']) ?? false;
     }
 
     public static function urlFor(int $usulanId, int $schemeId, string $kategori, int $tahun): string

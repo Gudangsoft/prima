@@ -28,7 +28,7 @@ class MonitoringUsulanCard extends Widget
     /** Dosen memakai UsulanSayaStats; kartu ini untuk peran pengawas. */
     public static function canView(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']) ?? false;
+        return auth()->user()?->isActingAs(['admin_lppm', 'pimpinan', 'super_admin']) ?? false;
     }
 
     private const DISETUJUI = [
@@ -69,7 +69,7 @@ class MonitoringUsulanCard extends Widget
         $user = auth()->user();
         $q = Proposal::query();
 
-        if (! $user->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin'])) {
+        if (! $user->isActingAs(['admin_lppm', 'pimpinan', 'super_admin'])) {
             $q->where('user_id', $user->getKey());
         }
 

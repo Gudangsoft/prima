@@ -12,10 +12,6 @@ trait ForDosen
 {
     public static function canView(): bool
     {
-        $user = auth()->user();
-
-        return $user !== null
-            && $user->hasRole('dosen')
-            && ! $user->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']);
+        return auth()->user()?->isActingAs('dosen') ?? false;
     }
 }

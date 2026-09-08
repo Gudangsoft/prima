@@ -20,6 +20,6 @@ abstract class OversightTablePage extends Page implements HasTable
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']) ?? false;
+        return auth()->user()?->isActingAs(['admin_lppm', 'pimpinan', 'super_admin']) ?? false;
     }
 }

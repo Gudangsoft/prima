@@ -20,9 +20,7 @@ class DashboardIdentity extends Widget
     /** Dosen: hero 2/3 (kartu "Profil Saya" mengisi 1/3 di sebelahnya); peran lain: penuh. */
     public function getColumnSpan(): int|string|array
     {
-        $user = auth()->user();
-
-        return $user?->hasRole('dosen') && ! $user->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin'])
+        return auth()->user()?->isActingAs('dosen')
             ? ['default' => 1, 'lg' => 2]
             : 'full';
     }

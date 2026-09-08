@@ -170,4 +170,59 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     {
         return ! $this->hasRole(RoleEnum::SuperAdmin->value);
     }
+
+    /**
+     * Urutan prioritas role saat memilih role aktif default (belum pernah
+     * memilih lewat dropdown "Peran Aktif") — role dengan cakupan lebih luas
+     * didahulukan.
+     */
+    private const ROLE_PRIORITY = [
+        RoleEnum::SuperAdmin->value,
+        RoleEnum::AdminLppm->value,
+        RoleEnum::Pimpinan->value,
+        RoleEnum::Reviewer->value,
+        RoleEnum::Dosen->value,
+    ];
+
+    /**
+     * Role yang sedang "dipakai" pengguna untuk sesi ini. Untuk akun dengan
+     * satu role, selalu role itu. Untuk akun multi-role, dibaca dari sesi
+     * (dipilih lewat dropdown "Peran Aktif" di menu pengguna) — jatuh ke role
+     * prioritas tertinggi bila belum pernah memilih atau pilihannya sudah
+     * tidak valid lagi (role dicabut).
+     *
+     * HANYA dipakai untuk visibilitas navigasi/menu/dasbor — BUKAN untuk
+     * otorisasi data sungguhan (Policy & scoping query tetap berdasarkan
+     * role asli lewat hasRole()/hasAnyRole() Spatie).
+     */
+    public function activeRole(): ?string
+    {
+        $roles = $this->getRoleNames();
+
+        if ($roles->count() <= 1) {
+            return $roles->first();
+        }
+
+        $dipilih = session('active_role');
+
+        if (is_string($dipilih) && $roles->contains($dipilih)) {
+            return $dipilih;
+        }
+
+        foreach (self::ROLE_PRIORITY as $kandidat) {
+            if ($roles->contains($kandidat)) {
+                return $kandidat;
+            }
+        }
+
+        return $roles->first();
+    }
+
+    /** Apakah role aktif (lihat {@see activeRole()}) termasuk salah satu dari daftar ini. */
+    public function isActingAs(string|array $roles): bool
+    {
+        $aktif = $this->activeRole();
+
+        return $aktif !== null && in_array($aktif, (array) $roles, true);
+    }
 }
