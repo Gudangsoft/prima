@@ -80,7 +80,11 @@ class LandingPageTest extends TestCase
         $this->get(route('berita.show', $berita))
             ->assertOk()
             ->assertSeeText('Kemdiktisaintek Perkuat Peran Mahasiswa')
-            ->assertSee('Isi lengkap berita di sini, lebih panjang dari ringkasan.', false);
+            ->assertSee('Isi lengkap berita di sini, lebih panjang dari ringkasan.', false)
+            // Menu atas (nav) tetap tampil, bukan cuma logo polos.
+            ->assertSeeText('Alur Layanan')
+            ->assertSeeText('Peran Pengguna')
+            ->assertSeeText('Masuk ke Sistem');
     }
 
     public function test_unpublished_berita_returns_404(): void

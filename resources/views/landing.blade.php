@@ -27,11 +27,11 @@
     $faviconUrl = $branding['favicon_url'] ?? asset('images/favicon.svg');
 
     $nav = [
-        ['#beranda', 'Beranda'],
-        ['#alur', 'Alur Layanan'],
-        ['#peran', 'Peran Pengguna'],
-        ['#berita', 'Berita'],
-        ['#pengumuman', 'Pengumuman'],
+        [route('landing').'#beranda', 'Beranda'],
+        [route('landing').'#alur', 'Alur Layanan'],
+        [route('landing').'#peran', 'Peran Pengguna'],
+        [route('landing').'#berita', 'Berita'],
+        [route('landing').'#pengumuman', 'Pengumuman'],
     ];
 @endphp
 <!DOCTYPE html>
@@ -117,37 +117,7 @@
         </div>
     </div>
 
-    {{-- Header --}}
-    <header id="site-header" class="sticky top-0 z-40 border-b border-transparent bg-white/70 backdrop-blur">
-        <div class="mx-auto max-w-7xl px-4 h-16 md:h-20 flex items-center justify-between gap-4">
-            <a href="#beranda" class="flex items-center shrink-0">
-                <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-10 md:h-14 w-auto max-w-[240px] object-contain">
-            </a>
-
-            <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-slate-600">
-                @foreach ($nav as [$href, $label])
-                    <a href="{{ $href }}" class="rounded-lg px-3 py-2 transition hover:bg-brand-50 hover:text-brand-700">{{ $label }}</a>
-                @endforeach
-            </nav>
-
-            <div class="flex items-center gap-2">
-                <a href="{{ url('/admin') }}"
-                   class="hidden sm:inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-brand-600 to-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition hover:shadow-xl hover:shadow-brand-600/30 hover:-translate-y-0.5">
-                    Masuk ke Sistem
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                </a>
-                <button id="menu-btn" type="button" class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100" aria-label="Menu">
-                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-                </button>
-            </div>
-        </div>
-        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white px-4 py-3">
-            @foreach ($nav as [$href, $label])
-                <a href="{{ $href }}" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">{{ $label }}</a>
-            @endforeach
-            <a href="{{ url('/admin') }}" class="mt-1 block rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white">Masuk ke Sistem</a>
-        </div>
-    </header>
+    @include('partials.site-header', ['nav' => $nav, 'logoUrl' => $logoUrl, 'appName' => $appName])
 
     {{-- Hero --}}
     <section id="beranda" class="relative overflow-hidden bg-brand-950 text-white">
@@ -417,52 +387,10 @@
         </div>
     </section>
 
-    {{-- Footer --}}
-    <footer class="bg-slate-900 text-slate-400">
-        <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-3">
-            <div>
-                <span class="inline-flex rounded-xl bg-white/95 px-3 py-2 shadow-sm">
-                    <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-9 w-auto max-w-[170px] object-contain">
-                </span>
-                @if ($footer['deskripsi'])
-                    <p class="mt-5 max-w-xs text-sm leading-relaxed">{{ $footer['deskripsi'] }}</p>
-                @endif
-            </div>
-            <div>
-                <h4 class="text-sm font-semibold text-white">Navigasi</h4>
-                <ul class="mt-4 space-y-2.5 text-sm">
-                    <li><a href="#alur" class="transition hover:text-white">Alur Layanan</a></li>
-                    <li><a href="#peran" class="transition hover:text-white">Peran Pengguna</a></li>
-                    <li><a href="#berita" class="transition hover:text-white">Berita</a></li>
-                    <li><a href="#pengumuman" class="transition hover:text-white">Pengumuman</a></li>
-                    <li><a href="{{ url('/admin') }}" class="transition hover:text-white">Masuk ke Sistem</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="text-sm font-semibold text-white">Kontak</h4>
-                <ul class="mt-4 space-y-2.5 text-sm">
-                    @if ($footer['lembaga'])<li>{{ $footer['lembaga'] }}</li>@endif
-                    @if ($footer['alamat'])<li>{{ $footer['alamat'] }}</li>@endif
-                    @if ($footer['telepon'])<li>{{ $footer['telepon'] }}</li>@endif
-                    @if ($footer['email'])<li><a href="mailto:{{ $footer['email'] }}" class="transition hover:text-white">{{ $footer['email'] }}</a></li>@endif
-                </ul>
-            </div>
-        </div>
-        <div class="border-t border-slate-800">
-            <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs sm:flex-row">
-                <span>&copy; {{ date('Y') }} {{ $footer['copyright'] ?: $appName }}. Seluruh hak cipta dilindungi.</span>
-                <span class="font-semibold text-slate-300">{{ $appName }}</span>
-            </div>
-        </div>
-    </footer>
+    @include('partials.site-footer', ['nav' => $nav, 'logoUrl' => $logoUrl, 'appName' => $appName, 'footer' => $footer])
 
     <script>
         (function () {
-            var header = document.getElementById('site-header');
-            var onScroll = function () { header.classList.toggle('scrolled', window.scrollY > 8); };
-            onScroll();
-            window.addEventListener('scroll', onScroll, { passive: true });
-
             var slider = document.getElementById('hero-slider');
             if (slider) {
                 var slides = slider.querySelectorAll('.hero-slide');
@@ -504,15 +432,6 @@
 
                     restart();
                 }
-            }
-
-            var btn = document.getElementById('menu-btn');
-            var menu = document.getElementById('mobile-menu');
-            if (btn && menu) {
-                btn.addEventListener('click', function () { menu.classList.toggle('hidden'); });
-                menu.querySelectorAll('a').forEach(function (a) {
-                    a.addEventListener('click', function () { menu.classList.add('hidden'); });
-                });
             }
 
             var io = new IntersectionObserver(function (entries) {
