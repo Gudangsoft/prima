@@ -28,6 +28,9 @@
         .kg-muted { color:#9ca3af; }
         .kg-info { background:#e0f2fe; color:#075985; border-radius:8px; padding:12px 16px; font-size:13px; margin-bottom:16px; }
         .kg-empty { padding:26px; text-align:center; color:#9ca3af; }
+        .kg-comment-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600; color:#fff; border:0; cursor:pointer; white-space:nowrap; }
+        .kg-comment-pop { position:absolute; z-index:20; top:calc(100% + 6px); left:0; min-width:260px; max-width:340px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 10px 28px rgba(15,23,42,.14); padding:10px; font-size:12px; line-height:1.6; }
+        [x-cloak] { display:none; }
     </style>
 
     @php($badgeStyle = fn (string $color) => match ($color) {
@@ -124,6 +127,23 @@
 
                                         @case('button')
                                             <a class="kg-btn" href="{{ $c['url'] }}" wire:navigate>{{ $c['value'] }}</a>
+                                            @break
+
+                                        @case('comment')
+                                            <div x-data="{ open: false }" style="position:relative;">
+                                                <button type="button" class="kg-comment-btn"
+                                                        style="background:{{ count($c['items']) ? '#3b5bd9' : '#9ca3af' }};"
+                                                        @click="open = !open" @click.outside="open = false">
+                                                    {{ $c['label'] }} ({{ count($c['items']) }})
+                                                </button>
+                                                <div class="kg-comment-pop" x-show="open" x-cloak>
+                                                    @forelse ($c['items'] as $item)
+                                                        <div style="padding:4px 0;border-bottom:1px solid #f1f2f4;">{{ $item }}</div>
+                                                    @empty
+                                                        <div class="kg-muted">Belum ada komentar.</div>
+                                                    @endforelse
+                                                </div>
+                                            </div>
                                             @break
                                     @endswitch
                                 </td>

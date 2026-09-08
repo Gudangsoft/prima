@@ -141,4 +141,51 @@ class DosenMenuTest extends TestCase
             ->assertSee('Modul Konsorsium')
             ->assertSee('belum tersedia');
     }
+
+    public function test_usulan_tab_shows_bima_style_columns_and_comments(): void
+    {
+        $dosen = $this->actAs('dosen');
+        $admin = tap(User::factory()->create(), fn (User $u) => $u->assignRole('admin_lppm'));
+        $reviewer = tap(User::factory()->create(), fn (User $u) => $u->assignRole('reviewer'));
+
+        $skema = ProposalScheme::factory()->penelitian()->create();
+        $proposal = Proposal::factory()->forDosen($dosen)->forScheme($skema)
+            ->status(ProposalStatus::UnderReview)
+            ->create(['judul' => 'Usulan Berkomentar']);
+
+        $proposal->approvals()->create(['approved_by' => $admin->id, 'status' => 'approved', 'catatan' => 'Lengkapi RAB.']);
+        $proposal->reviews()->create(['reviewer_id' => $reviewer->id, 'catatan' => 'Metodologi perlu diperjelas.']);
+
+        $this->get(Kegiatan::urlFor('penelitian', 'usulan'))
+            ->assertOk()
+            ->assertSee('Bidang Fokus')
+            ->assertSee('Komentar LPPM')
+            ->assertSee('Komentar Reviewer')
+            ->assertSee('Info Eligibilitas');
+
+        $rows = Livewire::withQueryParams(['kategori' => 'penelitian', 'tab' => 'usulan'])
+            ->test(Kegiatan::class)->instance()->getRowsProperty();
+
+        $row = $rows->first();
+        $this->assertStringContainsString('Lengkapi RAB.', $row[7]['items'][0]);
+        $this->assertStringContainsString('Metodologi perlu diperjelas.', $row[8]['items'][0]);
+    }
+
+    public function test_eligibilitas_flags_scheme_with_existing_proposal_this_year(): void
+    {
+        $dosen = $this->actAs('dosen');
+
+        $sudahDiajukan = ProposalScheme::factory()->penelitian()->create(['nama_skema' => 'Riset Dasar']);
+        $belumDiajukan = ProposalScheme::factory()->penelitian()->create(['nama_skema' => 'Riset Terapan']);
+
+        Proposal::factory()->forDosen($dosen)->forScheme($sudahDiajukan)
+            ->create(['tahun_anggaran' => (int) now()->year]);
+
+        $eligibilitas = Livewire::withQueryParams(['kategori' => 'penelitian', 'tab' => 'usulan'])
+            ->test(Kegiatan::class)->instance()->getEligibilitasProperty();
+
+        $this->assertContains('Riset Terapan', $eligibilitas['eligible']);
+        $this->assertNotContains('Riset Dasar', $eligibilitas['eligible']);
+        $this->assertSame('Riset Dasar', $eligibilitas['tidak'][0]['nama']);
+    }
 }

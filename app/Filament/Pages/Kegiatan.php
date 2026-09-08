@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Enums\Kategori;
+use App\Enums\ProposalStatus;
 use App\Enums\ReportType;
 use App\Filament\Resources\ProposalResource;
 use App\Models\Proposal;
+use App\Models\ProposalScheme;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
@@ -114,6 +116,16 @@ class Kegiatan extends Page
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('eligibilitas')
+                ->label('Info Eligibilitas')
+                ->icon('heroicon-o-information-circle')
+                ->color('info')
+                ->visible(fn (): bool => $this->tab === 'usulan')
+                ->modalHeading('Info Eligibilitas')
+                ->modalContent(fn () => view('filament.pages.partials.info-eligibilitas', ['data' => $this->eligibilitas]))
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Tutup'),
+
             Action::make('baru')
                 ->label('Ajukan Usulan Baru')
                 ->icon('heroicon-m-plus')
@@ -123,11 +135,50 @@ class Kegiatan extends Page
         ];
     }
 
+    /**
+     * Skema aktif pada kategori ini, dipilah eligible / tidak eligible untuk
+     * dosen yang sedang login. Aturan saat ini: tidak eligible bila dosen
+     * sudah punya usulan (sebagai ketua/anggota) di skema & tahun berjalan
+     * yang sama dan belum ditolak.
+     *
+     * @return array{eligible: list<string>, tidak: list<array{nama: string, alasan: string}>}
+     */
+    public function getEligibilitasProperty(): array
+    {
+        $me = auth()->id();
+        $tahun = (int) now()->year;
+
+        $eligible = [];
+        $tidak = [];
+
+        foreach (ProposalScheme::query()->aktif()->kategori($this->kategori)->orderBy('nama_skema')->get() as $skema) {
+            $sudahMengajukan = Proposal::query()
+                ->where('scheme_id', $skema->id)
+                ->where('tahun_anggaran', $tahun)
+                ->where(fn (Builder $w) => $w
+                    ->where('user_id', $me)
+                    ->orWhereHas('members', fn (Builder $m) => $m->where('user_id', $me)))
+                ->where('status', '!=', ProposalStatus::Rejected->value)
+                ->exists();
+
+            if ($sudahMengajukan) {
+                $tidak[] = [
+                    'nama' => $skema->nama_skema,
+                    'alasan' => "Anda sudah mengajukan usulan pada skema ini untuk tahun {$tahun}.",
+                ];
+            } else {
+                $eligible[] = $skema->nama_skema;
+            }
+        }
+
+        return ['eligible' => $eligible, 'tidak' => $tidak];
+    }
+
     /** @return array<int, string> */
     public function getColumnsProperty(): array
     {
         return match ($this->tab) {
-            'usulan' => ['Ketua', 'Judul', 'Skema', 'Tahun', 'Peran', 'Status', 'Aksi'],
+            'usulan' => ['Ketua', 'Judul', 'Skema', 'Bidang Fokus', 'Tahun', 'Peran', 'Status', 'Komentar LPPM', 'Komentar Reviewer', 'Aksi'],
             'bimtek' => ['Ketua', 'Judul', 'Skema', 'Tahun', 'Status Bimtek', 'Aksi'],
             'perbaikan' => ['Skema', 'Judul', 'Tahun', 'Pendanaan', 'Dokumen', 'Status', 'Aksi'],
             'catatan' => ['Skema', 'Tahun', 'Judul', 'Keterangan', 'Aksi'],
@@ -189,15 +240,26 @@ class Kegiatan extends Page
     {
         $me = auth()->id();
 
-        return $q->with('submitter:id,name,nidn')->get()->map(fn (Proposal $p): array => [
-            $this->c('text', Str::upper((string) $p->submitter?->name).($p->submitter?->nidn ? ' ('.$p->submitter->nidn.')' : '')),
-            $this->c('text', $p->judul, ['strong' => true]),
-            $this->c('text', $p->scheme?->nama_skema ?? '—', ['color' => 'primary']),
-            $this->c('text', (string) $p->tahun_anggaran),
-            $this->c('text', $p->user_id === $me ? 'Ketua' : 'Anggota'),
-            $this->c('badge', $p->status->label(), ['color' => $p->status->color()]),
-            $this->c('button', 'Detail', ['url' => $this->view($p)]),
-        ]);
+        return $q->with(['submitter:id,name,nidn', 'approvals.approver:id,name', 'reviews.reviewer:id,name'])
+            ->get()
+            ->map(fn (Proposal $p): array => [
+                $this->c('text', Str::upper((string) $p->submitter?->name).($p->submitter?->nidn ? ' ('.$p->submitter->nidn.')' : '')),
+                $this->c('text', $p->judul, ['strong' => true]),
+                $this->c('text', $p->scheme?->nama_skema ?? '—', ['color' => 'primary']),
+                $this->c('text', $p->bidang_fokus?->label() ?? '—'),
+                $this->c('text', (string) $p->tahun_anggaran),
+                $this->c('text', $p->user_id === $me ? 'Ketua' : 'Anggota'),
+                $this->c('badge', $p->status->label(), ['color' => $p->status->color()]),
+                $this->c('comment', null, ['label' => 'Komentar', 'items' => $p->approvals
+                    ->filter(fn ($a) => filled($a->catatan))
+                    ->map(fn ($a) => ($a->approver?->name ?: 'LPPM').': '.$a->catatan)
+                    ->values()->all()]),
+                $this->c('comment', null, ['label' => 'Komentar', 'items' => $p->reviews
+                    ->filter(fn ($r) => filled($r->catatan))
+                    ->map(fn ($r) => ($r->reviewer?->name ?: 'Reviewer').': '.$r->catatan)
+                    ->values()->all()]),
+                $this->c('button', 'Detail', ['url' => $this->view($p)]),
+            ]);
     }
 
     private function rowsPerbaikan(Builder $q): Collection
