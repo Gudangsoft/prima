@@ -78,6 +78,36 @@ class EditProfile extends BaseEditProfile
                             ->tel()
                             ->maxLength(30)
                             ->rule('regex:/^[0-9+\-\s]*$/'),
+                        TextInput::make('telepon')
+                            ->label('Nomor Telepon')
+                            ->tel()
+                            ->maxLength(30),
+                    ]),
+
+                Section::make('Scopus & Web of Science')
+                    ->description('Sistem ini tidak terhubung ke API Scopus/WOS — isi sendiri sesuai profil Scopus/WOS Anda.')
+                    ->columns(2)
+                    ->collapsible()
+                    ->schema([
+                        TextInput::make('scopus_id')
+                            ->label('Scopus ID')
+                            ->maxLength(50),
+                        TextInput::make('scopus_h_index')
+                            ->label('H-Index')
+                            ->numeric()
+                            ->minValue(0),
+                        TextInput::make('scopus_articles')
+                            ->label('Articles')
+                            ->numeric()
+                            ->minValue(0),
+                        TextInput::make('scopus_citation')
+                            ->label('Citation')
+                            ->numeric()
+                            ->minValue(0),
+                        TextInput::make('wos_score')
+                            ->label('WOS')
+                            ->numeric()
+                            ->minValue(0),
                     ]),
 
                 Section::make('Ubah Kata Sandi')

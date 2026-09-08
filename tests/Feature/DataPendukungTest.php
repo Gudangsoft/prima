@@ -231,6 +231,26 @@ class DataPendukungTest extends TestCase
         $this->assertSame('Asisten Ahli', $user->refresh()->jabatan);
     }
 
+    public function test_dosen_import_captures_scopus_and_wos_fields(): void
+    {
+        $this->runImport(DosenImporter::class,
+            ['nidn', 'name', 'scopus_id', 'scopus_h_index', 'scopus_articles', 'scopus_citation', 'wos_score'],
+            [[
+                'nidn' => '0615098702', 'name' => 'DANANG',
+                'scopus_id' => '57363389100', 'scopus_h_index' => '2',
+                'scopus_articles' => '7', 'scopus_citation' => '17', 'wos_score' => '0',
+            ]],
+        );
+
+        $user = User::where('nidn', '0615098702')->first();
+        $this->assertNotNull($user);
+        $this->assertSame('57363389100', $user->scopus_id);
+        $this->assertSame(2, $user->scopus_h_index);
+        $this->assertSame(7, $user->scopus_articles);
+        $this->assertSame(17, $user->scopus_citation);
+        $this->assertSame(0, $user->wos_score);
+    }
+
     public function test_dosen_import_rejects_row_without_nidn_or_nuptk(): void
     {
         $this->expectException(\RuntimeException::class);
@@ -255,6 +275,11 @@ class DataPendukungTest extends TestCase
             'jabatan' => 'Lektor',
             'sinta_id' => '5976759',
             'sinta_score_overall_v3' => 858.0,
+            'scopus_id' => '57363389100',
+            'scopus_h_index' => 2,
+            'scopus_articles' => 7,
+            'scopus_citation' => 17,
+            'wos_score' => 0,
         ]);
         $dosen->assignRole('dosen');
 
@@ -265,6 +290,9 @@ class DataPendukungTest extends TestCase
             ->assertSee('Data SINTA')
             ->assertSee('Sistem Komputer')
             ->assertSee('5976759')
+            ->assertSee('Scopus')
+            ->assertSee('57363389100')
+            ->assertSee('WOS')
             ->assertFormSet(['email' => $dosen->email], 'mountedActionForm');
     }
 

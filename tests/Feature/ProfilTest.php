@@ -65,6 +65,31 @@ class ProfilTest extends TestCase
         $this->assertSame('081999888777', $user->phone_number);
     }
 
+    public function test_dosen_can_input_their_own_scopus_and_wos_data(): void
+    {
+        $user = $this->actingOtpVerified('dosen');
+
+        Livewire::test(EditProfile::class)
+            ->fillForm([
+                'telepon' => '0271123456',
+                'scopus_id' => '57363389100',
+                'scopus_h_index' => '2',
+                'scopus_articles' => '7',
+                'scopus_citation' => '17',
+                'wos_score' => '0',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $user->refresh();
+        $this->assertSame('0271123456', $user->telepon);
+        $this->assertSame('57363389100', $user->scopus_id);
+        $this->assertSame(2, $user->scopus_h_index);
+        $this->assertSame(7, $user->scopus_articles);
+        $this->assertSame(17, $user->scopus_citation);
+        $this->assertSame(0, $user->wos_score);
+    }
+
     public function test_user_can_upload_avatar_and_it_becomes_the_filament_avatar(): void
     {
         Storage::fake('public');

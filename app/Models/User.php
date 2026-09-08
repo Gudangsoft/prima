@@ -39,6 +39,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'sinta_score_3yr_v2',
         'sinta_score_overall_v3',
         'sinta_score_3yr_v3',
+        'scopus_id',
+        'scopus_h_index',
+        'scopus_articles',
+        'scopus_citation',
+        'wos_score',
         'kompetensi',
         'phone_number',
         'telepon',
@@ -75,6 +80,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             'sinta_score_3yr_v2' => 'float',
             'sinta_score_overall_v3' => 'float',
             'sinta_score_3yr_v3' => 'float',
+            'scopus_h_index' => 'integer',
+            'scopus_articles' => 'integer',
+            'scopus_citation' => 'integer',
+            'wos_score' => 'integer',
         ];
     }
 

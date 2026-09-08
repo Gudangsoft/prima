@@ -87,6 +87,31 @@ class DosenImporter extends Importer
                 ->rules(['nullable', 'numeric'])
                 ->example('620.2'),
 
+            ImportColumn::make('scopus_id')
+                ->label('Scopus ID')
+                ->rules(['nullable', 'string', 'max:50'])
+                ->example('57363389100'),
+
+            ImportColumn::make('scopus_h_index')
+                ->label('Scopus H-Index')
+                ->rules(['nullable', 'integer', 'min:0'])
+                ->example('2'),
+
+            ImportColumn::make('scopus_articles')
+                ->label('Scopus Articles')
+                ->rules(['nullable', 'integer', 'min:0'])
+                ->example('7'),
+
+            ImportColumn::make('scopus_citation')
+                ->label('Scopus Citation')
+                ->rules(['nullable', 'integer', 'min:0'])
+                ->example('17'),
+
+            ImportColumn::make('wos_score')
+                ->label('WOS')
+                ->rules(['nullable', 'integer', 'min:0'])
+                ->example('0'),
+
             ImportColumn::make('phone_number')
                 ->label('No. HP')
                 ->rules(['nullable', 'string', 'max:30'])

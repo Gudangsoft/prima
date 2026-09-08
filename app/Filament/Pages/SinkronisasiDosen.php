@@ -170,8 +170,8 @@ class SinkronisasiDosen extends Page
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
                 ->action(fn () => response()->streamDownload(
-                    fn () => print ("nuptk,nidn,name,gelar_depan,gelar_belakang,sinta_id,pendidikan_terakhir,sinta_score_overall_v2,sinta_score_3yr_v2,sinta_score_overall_v3,sinta_score_3yr_v3,phone_number,jabatan,kompetensi,kode_prodi\n"
-                        .",0401019001,BUDI SANTOSO,Dr,\"S.Kom, M.Kom\",257669,S2,771.5,391.5,1123.87,620.2,081234567890,Lektor,\"Rekayasa Perangkat Lunak\",55201\n"),
+                    fn () => print ("nuptk,nidn,name,gelar_depan,gelar_belakang,sinta_id,pendidikan_terakhir,sinta_score_overall_v2,sinta_score_3yr_v2,sinta_score_overall_v3,sinta_score_3yr_v3,scopus_id,scopus_h_index,scopus_articles,scopus_citation,wos_score,phone_number,jabatan,kompetensi,kode_prodi\n"
+                        .",0401019001,BUDI SANTOSO,Dr,\"S.Kom, M.Kom\",257669,S2,771.5,391.5,1123.87,620.2,57363389100,2,7,17,0,081234567890,Lektor,\"Rekayasa Perangkat Lunak\",55201\n"),
                     'template-dosen.csv',
                     ['Content-Type' => 'text/csv'],
                 )),

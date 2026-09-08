@@ -134,6 +134,36 @@ class UserResource extends Resource
                         ->numeric(),
                 ]),
 
+            Forms\Components\Section::make('Scopus & Web of Science')
+                ->description('Diisi manual oleh dosen lewat Profil Saya (tidak ada koneksi API Scopus/WOS).')
+                ->columns(3)
+                ->collapsible()
+                ->schema([
+                    Forms\Components\TextInput::make('scopus_id')
+                        ->label('Scopus ID')
+                        ->maxLength(50),
+
+                    Forms\Components\TextInput::make('scopus_h_index')
+                        ->label('H-Index')
+                        ->numeric()
+                        ->minValue(0),
+
+                    Forms\Components\TextInput::make('scopus_articles')
+                        ->label('Articles')
+                        ->numeric()
+                        ->minValue(0),
+
+                    Forms\Components\TextInput::make('scopus_citation')
+                        ->label('Citation')
+                        ->numeric()
+                        ->minValue(0),
+
+                    Forms\Components\TextInput::make('wos_score')
+                        ->label('WOS')
+                        ->numeric()
+                        ->minValue(0),
+                ]),
+
             Forms\Components\Section::make('Akun & Peran')
                 ->columns(2)
                 ->schema([
@@ -239,6 +269,35 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('sinta_score_3yr_v3')
                     ->label('Skor 3Yr (v3)')
                     ->numeric(decimalPlaces: 2)
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('scopus_id')
+                    ->label('Scopus ID')
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('scopus_h_index')
+                    ->label('H-Index')
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('scopus_articles')
+                    ->label('Articles')
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('scopus_citation')
+                    ->label('Citation')
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('wos_score')
+                    ->label('WOS')
                     ->sortable()
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),

@@ -85,6 +85,36 @@
                 <dd class="dp-plain">{{ $dosen->sinta_score_3yr_v2 !== null ? number_format($dosen->sinta_score_3yr_v2, 2) : '—' }}</dd>
             </div>
         </div>
+
+        <div class="dp-card-body" style="border-top:1px solid #eef0f3;">
+            <div class="dp-item" style="grid-column:1 / -1;">
+                <dt>Scopus</dt>
+            </div>
+            <div class="dp-item">
+                <dt>Scopus ID</dt>
+                <dd>{{ $dosen->scopus_id ?: '—' }}</dd>
+            </div>
+            <div class="dp-item">
+                <dt>H-Index</dt>
+                <dd>{{ $dosen->scopus_h_index ?? '—' }}</dd>
+            </div>
+            <div class="dp-item">
+                <dt>Articles</dt>
+                <dd>{{ $dosen->scopus_articles ?? '—' }}</dd>
+            </div>
+            <div class="dp-item">
+                <dt>Citation</dt>
+                <dd>{{ $dosen->scopus_citation ?? '—' }}</dd>
+            </div>
+            <div class="dp-item" style="grid-column:1 / -1; margin-top:6px;">
+                <dt>WOS</dt>
+            </div>
+            <div class="dp-item">
+                <dt>WOS</dt>
+                <dd>{{ $dosen->wos_score ?? '—' }}</dd>
+            </div>
+        </div>
+
         <div class="dp-card-foot">
             <span>Terakhir diperbarui: <strong>{{ $dosen->updated_at?->format('d M Y H:i') ?: '—' }}</strong></span>
         </div>
