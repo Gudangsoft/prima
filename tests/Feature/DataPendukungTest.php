@@ -6,10 +6,12 @@ namespace Tests\Feature;
 
 use App\Filament\Imports\DosenImporter;
 use App\Filament\Imports\ProgramStudiImporter;
+use App\Filament\Pages\SinkronisasiDosen;
 use App\Models\ProgramStudi;
 use App\Models\User;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class DataPendukungTest extends TestCase
@@ -152,5 +154,23 @@ class DataPendukungTest extends TestCase
         $this->assertNotNull($user);
         $this->assertSame('nidn0401019002@dosen.local', $user->email);
         $this->assertTrue($user->hasRole('dosen'));
+    }
+
+    public function test_sinkronisasi_dosen_lists_and_searches_dosen(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        $prodi = ProgramStudi::factory()->create(['nama' => 'Teknik Informatika']);
+        $budi = User::factory()->create(['name' => 'Budi Santoso', 'nidn' => '0401019001', 'program_studi_id' => $prodi->id]);
+        $budi->assignRole('dosen');
+        $ani = User::factory()->create(['name' => 'Ani Wijaya', 'nidn' => '0401019002']);
+        $ani->assignRole('dosen');
+
+        Livewire::test(SinkronisasiDosen::class)
+            ->assertSee('Budi Santoso')
+            ->assertSee('Ani Wijaya')
+            ->set('cari', 'Budi')
+            ->assertSee('Budi Santoso')
+            ->assertDontSee('Ani Wijaya');
     }
 }

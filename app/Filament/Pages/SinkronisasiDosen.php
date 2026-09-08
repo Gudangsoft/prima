@@ -4,19 +4,29 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Enums\Role as RoleEnum;
 use App\Filament\Imports\DosenImporter;
+use App\Filament\Resources\UserResource;
 use App\Models\User;
+use App\Support\Settings;
 use Filament\Actions\Action;
 use Filament\Actions\ImportAction;
 use Filament\Pages\Page;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Livewire\Attributes\Url;
+use Livewire\WithPagination;
 
 /**
- * "Sinkronisasi Dosen" (grup Data Pendukung) — impor / pemutakhiran akun dosen
- * dari berkas CSV (pengganti tarik data PDDIKTI). Baris dicocokkan berdasarkan
- * NIDN; akun baru otomatis berperan "dosen".
+ * "Sinkronisasi Dosen" (grup Data Pendukung) — gaya BIMA: daftar dosen yang
+ * bisa dicari, plus impor / pemutakhiran akun dari berkas CSV (pengganti
+ * tarik data PDDIKTI langsung, karena aplikasi ini tidak terhubung ke PDDIKTI
+ * nasional). Baris dicocokkan berdasarkan NIDN; akun baru otomatis berperan
+ * "dosen".
  */
 class SinkronisasiDosen extends Page
 {
+    use WithPagination;
+
     protected static ?string $navigationIcon = 'heroicon-o-arrow-down-on-square-stack';
 
     protected static ?string $navigationGroup = 'Data Pendukung';
@@ -29,9 +39,46 @@ class SinkronisasiDosen extends Page
 
     protected static string $view = 'filament.pages.sinkronisasi-dosen';
 
+    #[Url]
+    public string $cari = '';
+
+    #[Url]
+    public string $berdasarkan = 'nama';
+
+    #[Url]
+    public int $perHalaman = 10;
+
     public static function canAccess(): bool
     {
         return auth()->user()?->can('create', User::class) ?? false;
+    }
+
+    public function updatingCari(): void
+    {
+        $this->resetPage();
+    }
+
+    public function getInstitusiProperty(): string
+    {
+        return Settings::institution()['nama'] ?: (string) Settings::get('app_name', 'SIP2M');
+    }
+
+    /** @return LengthAwarePaginator<int, User> */
+    public function getDosenProperty(): LengthAwarePaginator
+    {
+        $kolom = $this->berdasarkan === 'nidn' ? 'nidn' : 'name';
+
+        return User::query()
+            ->role(RoleEnum::Dosen->value)
+            ->when($this->cari !== '', fn ($q) => $q->where($kolom, 'like', '%'.$this->cari.'%'))
+            ->with('programStudi')
+            ->orderBy('name')
+            ->paginate($this->perHalaman);
+    }
+
+    public function editUrl(User $dosen): string
+    {
+        return UserResource::getUrl('edit', ['record' => $dosen]);
     }
 
     protected function getHeaderActions(): array
