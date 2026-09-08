@@ -95,6 +95,8 @@ class ProgramStudiResource extends Resource
                     ->label('Dosen')
                     ->counts('dosen')
                     ->alignCenter()
+                    ->color('primary')
+                    ->weight('bold')
                     ->url(fn (ProgramStudi $record): string => SinkronisasiDosen::urlUntukProdi($record->id)),
             ])
             ->filters([
