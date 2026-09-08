@@ -91,6 +91,10 @@ class AdminPanelProvider extends PanelProvider
                     HTML,
             )
             ->renderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
+                fn (): string => Blade::render('<x-active-role-badge />'),
+            )
+            ->renderHook(
                 PanelsRenderHook::BODY_START,
                 fn (): string => Blade::render('<x-impersonation-banner />'),
             )

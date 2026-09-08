@@ -124,6 +124,19 @@ class ActiveRoleTest extends TestCase
         $this->assertTrue(collect($items)->contains(fn ($i) => $i->isVisible()));
     }
 
+    public function test_topbar_badge_shows_active_role_and_switch_options_for_multi_role_accounts(): void
+    {
+        $single = User::factory()->create(['phone_number' => '0812']);
+        $single->assignRole('dosen');
+        $this->actAs($single);
+        $this->get('/admin')->assertOk()->assertSee('Dosen')->assertDontSee('Ganti Peran Aktif');
+
+        $multi = User::factory()->create(['phone_number' => '0813']);
+        $multi->syncRoles(['dosen', 'admin_lppm']);
+        $this->actAs($multi);
+        $this->get('/admin')->assertOk()->assertSee('Admin LPPM')->assertSee('Ganti Peran Aktif');
+    }
+
     public function test_user_menu_lists_switch_options_only_for_multi_role_accounts(): void
     {
         $tunggal = User::factory()->create();
