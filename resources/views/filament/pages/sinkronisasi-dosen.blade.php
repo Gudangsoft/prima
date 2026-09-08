@@ -2,13 +2,18 @@
     <x-filament::section icon="heroicon-o-information-circle" heading="Cara pakai">
         <ol style="margin:0;padding-left:18px;line-height:1.9;font-size:13px;color:#374151;">
             <li>Unduh <strong>template CSV</strong> (tombol di atas) atau ekspor data dosen dari SIAKAD/PDDIKTI.</li>
-            <li>Kolom: <code>nidn</code>, <code>name</code>, <code>email</code>, <code>phone_number</code>,
-                <code>jabatan</code>, <code>kompetensi</code>, <code>kode_prodi</code>.
-                Hanya <code>nidn</code>, <code>name</code>, <code>email</code> yang wajib.</li>
+            <li>Kolom: <code>nidn</code>, <code>name</code>, <code>gelar_depan</code>, <code>gelar_belakang</code>,
+                <code>sinta_id</code>, <code>pendidikan_terakhir</code>,
+                <code>sinta_score_overall_v2</code>, <code>sinta_score_3yr_v2</code>,
+                <code>sinta_score_overall_v3</code>, <code>sinta_score_3yr_v3</code>,
+                <code>phone_number</code>, <code>jabatan</code>, <code>kompetensi</code>, <code>kode_prodi</code>.
+                Hanya <code>nidn</code> dan <code>name</code> yang wajib — email tidak diminta lagi,
+                akun baru otomatis diberi email placeholder karena dosen login memakai <strong>NIDN</strong>.
+                <code>gelar_depan</code>/<code>gelar_belakang</code> otomatis digabung ke nama lengkap.</li>
             <li>Klik <strong>Impor CSV Dosen</strong>, unggah berkas, dan petakan kolom bila perlu.</li>
-            <li>Baris dicocokkan berdasarkan <strong>NIDN</strong> (atau email): akun yang sudah ada
+            <li>Baris dicocokkan berdasarkan <strong>NIDN</strong>: akun yang sudah ada
                 <em>diperbarui</em>, yang belum ada <em>dibuat</em> dengan peran <strong>dosen</strong>
-                dan kata sandi acak (dosen memakai reset kata sandi untuk masuk pertama kali).</li>
+                dan kata sandi acak (dosen login pakai NIDN, ganti kata sandi lewat profil setelah masuk pertama kali).</li>
             <li><code>kode_prodi</code> ditautkan ke Program Studi bila kodenya sudah terdaftar
                 (lihat menu <strong>Sinkronisasi Prodi</strong>).</li>
         </ol>

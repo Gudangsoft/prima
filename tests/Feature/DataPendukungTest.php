@@ -96,9 +96,16 @@ class DataPendukungTest extends TestCase
         $prodi = ProgramStudi::factory()->create(['kode' => '55201']);
 
         $this->runImport(DosenImporter::class,
-            ['nidn', 'name', 'email', 'phone_number', 'jabatan', 'kompetensi', 'kode_prodi'],
+            [
+                'nidn', 'name', 'gelar_depan', 'gelar_belakang', 'sinta_id', 'pendidikan_terakhir',
+                'sinta_score_overall_v2', 'sinta_score_3yr_v2', 'sinta_score_overall_v3', 'sinta_score_3yr_v3',
+                'phone_number', 'jabatan', 'kompetensi', 'kode_prodi',
+            ],
             [[
-                'nidn' => '0401019001', 'name' => 'Dr. Budi', 'email' => 'budi@kampus.ac.id',
+                'nidn' => '0401019001', 'name' => 'BUDI SANTOSO', 'gelar_depan' => 'Dr', 'gelar_belakang' => 'S.Kom, M.Kom',
+                'sinta_id' => '257669', 'pendidikan_terakhir' => 'S2',
+                'sinta_score_overall_v2' => '771.5', 'sinta_score_3yr_v2' => '391.5',
+                'sinta_score_overall_v3' => '1123.87', 'sinta_score_3yr_v3' => '620.2',
                 'phone_number' => '0812', 'jabatan' => 'Lektor', 'kompetensi' => 'RPL', 'kode_prodi' => '55201',
             ]],
         );
@@ -106,7 +113,14 @@ class DataPendukungTest extends TestCase
         $user = User::where('nidn', '0401019001')->first();
         $this->assertNotNull($user);
         $this->assertTrue($user->hasRole('dosen'));
-        $this->assertSame('budi@kampus.ac.id', $user->email);
+        $this->assertSame('nidn0401019001@dosen.local', $user->email);
+        $this->assertSame('Dr BUDI SANTOSO, S.Kom, M.Kom', $user->name);
+        $this->assertSame('257669', $user->sinta_id);
+        $this->assertSame('S2', $user->pendidikan_terakhir);
+        $this->assertSame(771.5, $user->sinta_score_overall_v2);
+        $this->assertSame(391.5, $user->sinta_score_3yr_v2);
+        $this->assertSame(1123.87, $user->sinta_score_overall_v3);
+        $this->assertSame(620.2, $user->sinta_score_3yr_v3);
         $this->assertSame($prodi->id, $user->program_studi_id);
         $this->assertSame('Lektor', $user->jabatan);
     }
@@ -117,8 +131,8 @@ class DataPendukungTest extends TestCase
         $existing->assignRole('dosen');
 
         $this->runImport(DosenImporter::class,
-            ['nidn', 'name', 'email', 'jabatan'],
-            [['nidn' => '0401019001', 'name' => 'Nama Baru', 'email' => $existing->email, 'jabatan' => 'Lektor Kepala']],
+            ['nidn', 'name', 'jabatan'],
+            [['nidn' => '0401019001', 'name' => 'Nama Baru', 'jabatan' => 'Lektor Kepala']],
         );
 
         $existing->refresh();
@@ -127,7 +141,7 @@ class DataPendukungTest extends TestCase
         $this->assertSame(1, User::where('nidn', '0401019001')->count());
     }
 
-    public function test_dosen_import_without_email_column_generates_placeholder(): void
+    public function test_dosen_import_generates_placeholder_email(): void
     {
         $this->runImport(DosenImporter::class,
             ['nidn', 'name', 'jabatan'],

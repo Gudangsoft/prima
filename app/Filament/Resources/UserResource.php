@@ -98,6 +98,36 @@ class UserResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            Forms\Components\Section::make('Data SINTA')
+                ->description('Terisi otomatis lewat Import Dosen / Sinkronisasi Dosen; bisa disunting manual bila perlu.')
+                ->columns(3)
+                ->collapsible()
+                ->schema([
+                    Forms\Components\TextInput::make('sinta_id')
+                        ->label('SINTA ID')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('pendidikan_terakhir')
+                        ->label('Pendidikan terakhir')
+                        ->maxLength(10),
+
+                    Forms\Components\TextInput::make('sinta_score_overall_v2')
+                        ->label('Skor Overall (v2)')
+                        ->numeric(),
+
+                    Forms\Components\TextInput::make('sinta_score_3yr_v2')
+                        ->label('Skor 3Yr (v2)')
+                        ->numeric(),
+
+                    Forms\Components\TextInput::make('sinta_score_overall_v3')
+                        ->label('Skor Overall (v3)')
+                        ->numeric(),
+
+                    Forms\Components\TextInput::make('sinta_score_3yr_v3')
+                        ->label('Skor 3Yr (v3)')
+                        ->numeric(),
+                ]),
+
             Forms\Components\Section::make('Akun & Peran')
                 ->columns(2)
                 ->schema([
@@ -161,6 +191,44 @@ class UserResource extends Resource
                     ->label('Program Studi')
                     ->placeholder('—')
                     ->toggleable(),
+
+                Tables\Columns\TextColumn::make('sinta_id')
+                    ->label('SINTA ID')
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('pendidikan_terakhir')
+                    ->label('Pendidikan')
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('sinta_score_overall_v2')
+                    ->label('Skor Overall (v2)')
+                    ->numeric(decimalPlaces: 2)
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('sinta_score_3yr_v2')
+                    ->label('Skor 3Yr (v2)')
+                    ->numeric(decimalPlaces: 2)
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('sinta_score_overall_v3')
+                    ->label('Skor Overall (v3)')
+                    ->numeric(decimalPlaces: 2)
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('sinta_score_3yr_v3')
+                    ->label('Skor 3Yr (v3)')
+                    ->numeric(decimalPlaces: 2)
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('phone_number')
                     ->label('No. HP')

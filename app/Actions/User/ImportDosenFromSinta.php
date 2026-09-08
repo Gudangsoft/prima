@@ -99,6 +99,11 @@ class ImportDosenFromSinta
 
         $user->name = $this->namaLengkap($nama, $get('GELAR DEPAN'), $get('GELAR BELAKANG'));
         $user->jabatan = $get('JABATAN FUNGSIONAL') ?: null;
+        $user->pendidikan_terakhir = $get('PENDIDIKAN TERAKHIR') ?: null;
+        $user->sinta_score_overall_v2 = $this->angka($get('SINTA SCORE OVERALL (VERSI 2)'));
+        $user->sinta_score_3yr_v2 = $this->angka($get('SINTA SCORE 3YR (VERSI 2)'));
+        $user->sinta_score_overall_v3 = $this->angka($get('SINTA SCORE OVERALL (VERSI 3)'));
+        $user->sinta_score_3yr_v3 = $this->angka($get('SINTA SCORE 3YR (VERSI 3)'));
         $user->program_studi_id = $this->resolveProgramStudi($get('PRODI'));
 
         $nidn = $get('NIDN');
@@ -119,6 +124,11 @@ class ImportDosenFromSinta
         }
 
         return $isNew;
+    }
+
+    private function angka(string $nilai): ?float
+    {
+        return is_numeric($nilai) ? (float) $nilai : null;
     }
 
     private function namaLengkap(string $nama, string $gelarDepan, string $gelarBelakang): string

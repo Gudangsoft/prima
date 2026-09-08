@@ -44,6 +44,11 @@ class ImportDosenTest extends TestCase
         $this->assertTrue($toni->hasRole('dosen'));
         $this->assertSame('Teknik Informatika', $toni->programStudi->nama);
         $this->assertSame('sinta5974273@dosen.local', $toni->email);
+        $this->assertSame('S2', $toni->pendidikan_terakhir);
+        $this->assertSame(771.5, $toni->sinta_score_overall_v2);
+        $this->assertSame(391.5, $toni->sinta_score_3yr_v2);
+        $this->assertSame(1123.87, $toni->sinta_score_overall_v3);
+        $this->assertSame(620.2, $toni->sinta_score_3yr_v3);
 
         // Prodi sudah ada -> dipakai ulang, tidak duplikat.
         $this->assertSame(1, ProgramStudi::where('nama', 'Teknik Informatika')->count());

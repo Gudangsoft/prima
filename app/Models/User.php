@@ -34,10 +34,15 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'password',
         'nidn',
         'sinta_id',
+        'sinta_score_overall_v2',
+        'sinta_score_3yr_v2',
+        'sinta_score_overall_v3',
+        'sinta_score_3yr_v3',
         'kompetensi',
         'phone_number',
         'avatar_path',
         'jabatan',
+        'pendidikan_terakhir',
         'unit_kerja',
         'bio',
         'program_studi_id',
@@ -64,6 +69,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             'otp_verified_at' => 'datetime',
             'otp_last_sent_at' => 'datetime',
             'otp_attempts' => 'integer',
+            'sinta_score_overall_v2' => 'float',
+            'sinta_score_3yr_v2' => 'float',
+            'sinta_score_overall_v3' => 'float',
+            'sinta_score_3yr_v3' => 'float',
         ];
     }
 

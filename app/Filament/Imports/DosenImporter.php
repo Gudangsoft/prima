@@ -14,8 +14,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * Impor / "Sinkronisasi Dosen" dari CSV. Baris dicocokkan berdasarkan NIDN
- * (atau email). Akun baru otomatis diberi peran "dosen" dan sandi acak.
+ * Impor / "Sinkronisasi Dosen" dari CSV. Baris dicocokkan berdasarkan NIDN.
+ * Akun baru otomatis diberi peran "dosen", email placeholder, dan sandi acak
+ * (login dosen memakai NIDN, bukan email).
  */
 class DosenImporter extends Importer
 {
@@ -31,15 +32,55 @@ class DosenImporter extends Importer
                 ->example('0401019001'),
 
             ImportColumn::make('name')
-                ->label('Nama lengkap')
+                ->label('Nama')
                 ->requiredMapping()
                 ->rules(['required', 'string', 'max:255'])
-                ->example('Dr. Budi Santoso, M.Kom.'),
+                ->example('BUDI SANTOSO')
+                // Digabung dengan gelar depan/belakang di resolveRecord().
+                ->fillRecordUsing(fn () => null),
 
-            ImportColumn::make('email')
-                ->label('Email')
-                ->rules(['nullable', 'email', 'max:255'])
-                ->example('budi@kampus.ac.id'),
+            ImportColumn::make('gelar_depan')
+                ->label('Gelar depan')
+                ->rules(['nullable', 'string', 'max:50'])
+                ->example('Dr')
+                // Bukan kolom users; digabung ke `name` di resolveRecord().
+                ->fillRecordUsing(fn () => null),
+
+            ImportColumn::make('gelar_belakang')
+                ->label('Gelar belakang')
+                ->rules(['nullable', 'string', 'max:100'])
+                ->example('S.Kom, M.Kom')
+                ->fillRecordUsing(fn () => null),
+
+            ImportColumn::make('sinta_id')
+                ->label('SINTA ID')
+                ->rules(['nullable', 'string', 'max:255'])
+                ->example('257669'),
+
+            ImportColumn::make('pendidikan_terakhir')
+                ->label('Pendidikan terakhir')
+                ->rules(['nullable', 'string', 'max:10'])
+                ->example('S2'),
+
+            ImportColumn::make('sinta_score_overall_v2')
+                ->label('Skor SINTA Overall (v2)')
+                ->rules(['nullable', 'numeric'])
+                ->example('771.5'),
+
+            ImportColumn::make('sinta_score_3yr_v2')
+                ->label('Skor SINTA 3Yr (v2)')
+                ->rules(['nullable', 'numeric'])
+                ->example('391.5'),
+
+            ImportColumn::make('sinta_score_overall_v3')
+                ->label('Skor SINTA Overall (v3)')
+                ->rules(['nullable', 'numeric'])
+                ->example('1123.87'),
+
+            ImportColumn::make('sinta_score_3yr_v3')
+                ->label('Skor SINTA 3Yr (v3)')
+                ->rules(['nullable', 'numeric'])
+                ->example('620.2'),
 
             ImportColumn::make('phone_number')
                 ->label('No. HP')
@@ -67,26 +108,34 @@ class DosenImporter extends Importer
     public function resolveRecord(): User
     {
         $nidn = trim((string) $this->data['nidn']);
-        $email = trim((string) ($this->data['email'] ?? ''));
 
-        $user = User::query()
-            ->where('nidn', $nidn)
-            ->when($email !== '', fn ($query) => $query->orWhere('email', $email))
-            ->first() ?? new User;
+        $user = User::query()->where('nidn', $nidn)->first() ?? new User;
 
         if (! $user->exists) {
             $user->password = Hash::make(Str::random(16));
             $user->email_verified_at = now();
-            // Data sumber (mis. export SINTA) sering tidak menyertakan email;
-            // login tetap bisa lewat NIDN, jadi beri email placeholder.
-            $user->email = $email !== '' ? $email : 'nidn'.$nidn.'@dosen.local';
-        } elseif ($email !== '') {
-            $user->email = $email;
+            // Data sumber (export SINTA) tidak menyertakan email; login tetap
+            // bisa lewat NIDN, jadi diberi email placeholder.
+            $user->email = 'nidn'.$nidn.'@dosen.local';
         }
 
         $user->nidn = $nidn;
+        $user->name = $this->namaLengkap();
 
         return $user;
+    }
+
+    private function namaLengkap(): string
+    {
+        $nama = trim((string) $this->data['name']);
+        $gelarDepan = trim((string) ($this->data['gelar_depan'] ?? ''));
+        $gelarBelakang = trim((string) ($this->data['gelar_belakang'] ?? ''));
+
+        return trim(
+            ($gelarDepan !== '' ? $gelarDepan.' ' : '').
+            $nama.
+            ($gelarBelakang !== '' ? ', '.$gelarBelakang : ''),
+        );
     }
 
     public function beforeSave(): void
