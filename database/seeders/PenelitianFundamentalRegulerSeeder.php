@@ -37,8 +37,12 @@ class PenelitianFundamentalRegulerSeeder extends Seeder
             return;
         }
 
-        $danang = User::where('nidn', '0615098702')->first();
-        $agustinus = User::where('nidn', '0603099003')->first();
+        // NIDN dicocokkan dengan/tanpa nol di depan (sebagian tool CSV/spreadsheet
+        // menghilangkan nol di depan angka), plus fallback ke nama.
+        $danang = User::where('nidn', '0615098702')->orWhere('nidn', '615098702')
+            ->orWhere('name', 'LIKE', 'Danang%')->first();
+        $agustinus = User::where('nidn', '0603099003')->orWhere('nidn', '603099003')
+            ->orWhere('name', 'LIKE', 'Agustinus Budi Santoso%')->first();
 
         if (! $danang || ! $agustinus) {
             $this->command?->error('Akun Danang dan/atau Agustinus Budi Santoso tidak ditemukan.');
