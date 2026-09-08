@@ -173,15 +173,17 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     /**
      * Urutan prioritas role saat memilih role aktif default (belum pernah
-     * memilih lewat dropdown "Peran Aktif") — role dengan cakupan lebih luas
-     * didahulukan.
+     * memilih lewat dropdown "Peran Aktif") — Dosen didahulukan (dasbor
+     * pengusul jadi tampilan bawaan bila akun juga punya role pengawas);
+     * bila akun tidak punya role dosen, jatuh ke role pengawas cakupan
+     * terluas.
      */
     private const ROLE_PRIORITY = [
+        RoleEnum::Dosen->value,
         RoleEnum::SuperAdmin->value,
         RoleEnum::AdminLppm->value,
         RoleEnum::Pimpinan->value,
         RoleEnum::Reviewer->value,
-        RoleEnum::Dosen->value,
     ];
 
     /**

@@ -42,14 +42,22 @@ class ActiveRoleTest extends TestCase
         $this->assertFalse($dosen->isActingAs('admin_lppm'));
     }
 
-    public function test_multi_role_user_defaults_to_highest_priority_role(): void
+    public function test_multi_role_user_defaults_to_dosen(): void
     {
         $user = User::factory()->create();
         $user->syncRoles(['dosen', 'admin_lppm']);
 
+        $this->assertSame('dosen', $user->activeRole());
+        $this->assertTrue($user->isActingAs('dosen'));
+        $this->assertFalse($user->isActingAs('admin_lppm'));
+    }
+
+    public function test_multi_role_user_without_dosen_defaults_to_widest_oversight_role(): void
+    {
+        $user = User::factory()->create();
+        $user->syncRoles(['reviewer', 'admin_lppm']);
+
         $this->assertSame('admin_lppm', $user->activeRole());
-        $this->assertTrue($user->isActingAs('admin_lppm'));
-        $this->assertFalse($user->isActingAs('dosen'));
     }
 
     public function test_active_role_reads_from_session_when_valid(): void
@@ -67,10 +75,10 @@ class ActiveRoleTest extends TestCase
     public function test_active_role_ignores_invalid_or_unowned_session_value(): void
     {
         $user = User::factory()->create();
-        $user->syncRoles(['dosen', 'admin_lppm']);
+        $user->syncRoles(['reviewer', 'admin_lppm']);
 
         $this->actAs($user);
-        session(['active_role' => 'reviewer']); // tidak dimiliki user ini
+        session(['active_role' => 'dosen']); // tidak dimiliki user ini
 
         $this->assertSame('admin_lppm', $user->activeRole());
     }
@@ -105,23 +113,23 @@ class ActiveRoleTest extends TestCase
         $user->syncRoles(['dosen', 'admin_lppm']);
         $this->actAs($user);
 
-        // Default: admin_lppm aktif -> halaman oversight bisa diakses, menu dosen tidak.
-        $this->assertTrue(MonitoringPelaksanaan::canAccess());
-        $this->assertFalse(Kegiatan::canAccess());
+        // Default: dosen aktif -> menu/dasbor dosen tampil, halaman oversight tidak.
+        $this->assertTrue(Kegiatan::canAccess());
+        $this->assertFalse(MonitoringPelaksanaan::canAccess());
 
         $method = new \ReflectionMethod(AdminPanelProvider::class, 'dosenNavigationItems');
         $method->setAccessible(true);
         $items = $method->invoke(new AdminPanelProvider(app()));
-        $this->assertFalse(collect($items)->contains(fn ($i) => $i->isVisible()));
+        $this->assertTrue(collect($items)->contains(fn ($i) => $i->isVisible()));
 
-        // Beralih ke dosen -> sebaliknya.
-        $this->get('/switch-role/dosen')->assertRedirect('/admin');
+        // Beralih ke admin_lppm -> sebaliknya.
+        $this->get('/switch-role/admin_lppm')->assertRedirect('/admin');
 
-        $this->assertFalse(MonitoringPelaksanaan::canAccess());
-        $this->assertTrue(Kegiatan::canAccess());
+        $this->assertFalse(Kegiatan::canAccess());
+        $this->assertTrue(MonitoringPelaksanaan::canAccess());
 
         $items = $method->invoke(new AdminPanelProvider(app()));
-        $this->assertTrue(collect($items)->contains(fn ($i) => $i->isVisible()));
+        $this->assertFalse(collect($items)->contains(fn ($i) => $i->isVisible()));
     }
 
     public function test_topbar_badge_shows_active_role_and_switch_options_for_multi_role_accounts(): void
@@ -159,7 +167,7 @@ class ActiveRoleTest extends TestCase
         $switchItems = collect($items)->except('profile')->filter(fn ($i) => $i->isVisible());
 
         $this->assertCount(1, $switchItems, 'hanya role lain (bukan yang aktif) yang ditawarkan');
-        $this->assertStringContainsString('Dosen', $switchItems->first()->getLabel());
-        $this->assertStringContainsString('Reviewer', $items['profile']->getLabel());
+        $this->assertStringContainsString('Reviewer', $switchItems->first()->getLabel());
+        $this->assertStringContainsString('Dosen', $items['profile']->getLabel());
     }
 }
