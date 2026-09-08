@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Actions\Proposal\AssignReviewers;
+use App\Enums\Kategori;
 use App\Enums\ProposalStatus;
 use App\Filament\Pages\Concerns\OversightTablePage;
 use App\Filament\Resources\ProposalResource;
@@ -12,6 +13,7 @@ use App\Filament\Resources\ProposalResource\Support\WorkflowForms;
 use App\Models\Proposal;
 use Filament\Notifications\Notification;
 use Filament\Tables;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Table;
 
 /**
@@ -59,11 +61,35 @@ class PlottingReviewer extends OversightTablePage
                     ->formatStateUsing(fn ($state, Proposal $record): string => "{$state} / {$record->reviews_count}")
                     ->alignCenter(),
             ])
+            ->filtersLayout(FiltersLayout::AboveContent)
+            ->filtersFormColumns(3)
             ->filters([
-                Tables\Filters\SelectFilter::make('status')->options([
-                    ProposalStatus::ApprovedLppm->value => ProposalStatus::ApprovedLppm->label(),
-                    ProposalStatus::UnderReview->value => ProposalStatus::UnderReview->label(),
-                ]),
+                Tables\Filters\SelectFilter::make('tahun_anggaran')
+                    ->label('Tahun Pelaksanaan')
+                    ->options(fn (): array => Proposal::query()
+                        ->whereIn('status', [ProposalStatus::ApprovedLppm->value, ProposalStatus::UnderReview->value])
+                        ->distinct()
+                        ->orderByDesc('tahun_anggaran')
+                        ->pluck('tahun_anggaran', 'tahun_anggaran')
+                        ->all())
+                    ->native(false),
+
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Tahapan')
+                    ->options([
+                        ProposalStatus::ApprovedLppm->value => ProposalStatus::ApprovedLppm->label(),
+                        ProposalStatus::UnderReview->value => ProposalStatus::UnderReview->label(),
+                    ])
+                    ->native(false),
+
+                Tables\Filters\SelectFilter::make('kategori')
+                    ->label('Kegiatan')
+                    ->options(Kategori::options())
+                    ->native(false)
+                    ->query(fn ($query, array $data) => filled($data['value'] ?? null)
+                        ? $query->whereHas('scheme', fn ($q) => $q->where('kategori', $data['value']))
+                        : $query),
+
                 Tables\Filters\Filter::make('belum_ada_reviewer')
                     ->label('Belum ada reviewer')
                     ->query(fn ($q) => $q->doesntHave('reviews')),
