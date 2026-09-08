@@ -78,6 +78,29 @@ class DataPendukungTest extends TestCase
             ->assertSeeText('Non Aktif');
     }
 
+    public function test_dosen_count_links_to_filtered_sinkronisasi_dosen(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        $ti = ProgramStudi::factory()->create(['nama' => 'Teknik Informatika']);
+        $si = ProgramStudi::factory()->create(['nama' => 'Sistem Informasi']);
+        $budi = User::factory()->create(['name' => 'Budi Santoso', 'program_studi_id' => $ti->id]);
+        $budi->assignRole('dosen');
+        $ani = User::factory()->create(['name' => 'Ani Wijaya', 'program_studi_id' => $si->id]);
+        $ani->assignRole('dosen');
+
+        Livewire::test(SinkronisasiDosen::class)
+            ->set('prodi', $ti->id)
+            ->assertSee('Teknik Informatika')
+            ->assertSee('Budi Santoso')
+            ->assertDontSee('Ani Wijaya');
+
+        $this->assertStringContainsString(
+            'prodi='.$ti->id,
+            \App\Filament\Pages\SinkronisasiDosen::urlUntukProdi($ti->id),
+        );
+    }
+
     public function test_sinkronisasi_dosen_page_is_gated(): void
     {
         $this->actingOtpVerified('admin_lppm');
@@ -184,5 +207,37 @@ class DataPendukungTest extends TestCase
             ->set('cari', 'Budi')
             ->assertSee('Budi Santoso')
             ->assertDontSee('Ani Wijaya');
+    }
+
+    public function test_dosen_import_matches_by_nuptk_when_nidn_blank(): void
+    {
+        $this->runImport(DosenImporter::class,
+            ['nuptk', 'name', 'jabatan'],
+            [['nuptk' => '1234567890123456', 'name' => 'Dosen Tidak Tetap', 'jabatan' => 'Tenaga Pengajar']],
+        );
+
+        $user = User::where('nuptk', '1234567890123456')->first();
+        $this->assertNotNull($user);
+        $this->assertNull($user->nidn);
+        $this->assertSame('nuptk1234567890123456@dosen.local', $user->email);
+        $this->assertTrue($user->hasRole('dosen'));
+
+        // Impor ulang dengan NUPTK yang sama -> perbarui, tidak duplikat.
+        $this->runImport(DosenImporter::class,
+            ['nuptk', 'name', 'jabatan'],
+            [['nuptk' => '1234567890123456', 'name' => 'Dosen Tidak Tetap Update', 'jabatan' => 'Asisten Ahli']],
+        );
+        $this->assertSame(1, User::where('nuptk', '1234567890123456')->count());
+        $this->assertSame('Asisten Ahli', $user->refresh()->jabatan);
+    }
+
+    public function test_dosen_import_rejects_row_without_nidn_or_nuptk(): void
+    {
+        $this->expectException(\RuntimeException::class);
+
+        $this->runImport(DosenImporter::class,
+            ['name'],
+            [['name' => 'Tanpa Identitas']],
+        );
     }
 }

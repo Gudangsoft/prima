@@ -14,9 +14,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * Impor / "Sinkronisasi Dosen" dari CSV. Baris dicocokkan berdasarkan NIDN.
- * Akun baru otomatis diberi peran "dosen", email placeholder, dan sandi acak
- * (login dosen memakai NIDN, bukan email).
+ * Impor / "Sinkronisasi Dosen" dari CSV. Baris dicocokkan berdasarkan NIDN
+ * atau NUPTK (salah satu wajib diisi — NUPTK dipakai untuk dosen tidak tetap
+ * yang belum punya NIDN). Akun baru otomatis diberi peran "dosen", email
+ * placeholder, dan sandi acak (login dosen memakai NIDN, bukan email).
  */
 class DosenImporter extends Importer
 {
@@ -25,10 +26,14 @@ class DosenImporter extends Importer
     public static function getColumns(): array
     {
         return [
+            ImportColumn::make('nuptk')
+                ->label('NUPTK')
+                ->rules(['nullable', 'string', 'max:20'])
+                ->example('1234567890123456'),
+
             ImportColumn::make('nidn')
                 ->label('NIDN')
-                ->requiredMapping()
-                ->rules(['required', 'string', 'max:20'])
+                ->rules(['nullable', 'string', 'max:20'])
                 ->example('0401019001'),
 
             ImportColumn::make('name')
@@ -107,19 +112,28 @@ class DosenImporter extends Importer
 
     public function resolveRecord(): User
     {
-        $nidn = trim((string) $this->data['nidn']);
+        $nidn = trim((string) ($this->data['nidn'] ?? ''));
+        $nuptk = trim((string) ($this->data['nuptk'] ?? ''));
 
-        $user = User::query()->where('nidn', $nidn)->first() ?? new User;
+        if ($nidn === '' && $nuptk === '') {
+            throw new \RuntimeException('NIDN atau NUPTK wajib diisi salah satu.');
+        }
+
+        $user = User::query()
+            ->when($nidn !== '', fn ($q) => $q->where('nidn', $nidn))
+            ->when($nuptk !== '', fn ($q) => $q->orWhere('nuptk', $nuptk))
+            ->first() ?? new User;
 
         if (! $user->exists) {
             $user->password = Hash::make(Str::random(16));
             $user->email_verified_at = now();
             // Data sumber (export SINTA) tidak menyertakan email; login tetap
-            // bisa lewat NIDN, jadi diberi email placeholder.
-            $user->email = 'nidn'.$nidn.'@dosen.local';
+            // bisa lewat NIDN/NUPTK, jadi diberi email placeholder.
+            $user->email = ($nidn !== '' ? 'nidn'.$nidn : 'nuptk'.$nuptk).'@dosen.local';
         }
 
-        $user->nidn = $nidn;
+        $user->nidn = $nidn !== '' ? $nidn : null;
+        $user->nuptk = $nuptk !== '' ? $nuptk : null;
         $user->name = $this->namaLengkap();
 
         return $user;

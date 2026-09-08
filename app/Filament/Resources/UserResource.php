@@ -63,9 +63,15 @@ class UserResource extends Resource
                         ->maxLength(255)
                         ->unique(ignoreRecord: true),
 
+                    Forms\Components\TextInput::make('nuptk')
+                        ->label('NUPTK')
+                        ->helperText('Isi bila dosen belum memiliki NIDN (mis. dosen tidak tetap).')
+                        ->maxLength(20)
+                        ->unique(ignoreRecord: true),
+
                     Forms\Components\TextInput::make('nidn')
                         ->label('NIDN')
-                        ->helperText('Wajib untuk dosen; kosongkan untuk non-dosen.')
+                        ->helperText('Wajib untuk dosen tetap; kosongkan untuk non-dosen.')
                         ->maxLength(20)
                         ->unique(ignoreRecord: true),
 
@@ -180,6 +186,13 @@ class UserResource extends Resource
                     ->label('Peran')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => RoleEnum::tryFrom($state)?->label() ?? $state),
+
+                Tables\Columns\TextColumn::make('nuptk')
+                    ->label('NUPTK')
+                    ->searchable(isIndividual: true)
+                    ->copyable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('nidn')
                     ->label('NIDN')

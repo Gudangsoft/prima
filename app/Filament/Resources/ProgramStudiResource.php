@@ -6,6 +6,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\Jenjang;
 use App\Filament\Imports\ProgramStudiImporter;
+use App\Filament\Pages\SinkronisasiDosen;
 use App\Filament\Resources\ProgramStudiResource\Pages;
 use App\Models\ProgramStudi;
 use Filament\Forms;
@@ -90,7 +91,12 @@ class ProgramStudiResource extends Resource
                     ->color(fn (bool $state): string => $state ? 'success' : 'danger'),
 
                 Tables\Columns\TextColumn::make('fakultas')->searchable()->toggleable(isToggledHiddenByDefault: true)->placeholder('—'),
-                Tables\Columns\TextColumn::make('dosen_count')->label('Dosen')->counts('dosen')->alignCenter()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('dosen_count')
+                    ->label('Dosen')
+                    ->counts('dosen')
+                    ->alignCenter()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->url(fn (ProgramStudi $record): string => SinkronisasiDosen::urlUntukProdi($record->id)),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('jenjang')->options(Jenjang::options()),

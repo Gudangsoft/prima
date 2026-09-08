@@ -32,11 +32,21 @@
     <div class="sd-wrap" style="margin-bottom:20px;">
         <h2 class="sd-heading">Daftar Dosen</h2>
 
+        @if ($this->prodiAktif)
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 14px;background:#eef2fe;border:1px solid #dbe3fd;border-radius:8px;font-size:13px;color:#2f43b8;">
+                Filter Program Studi: <strong>{{ $this->prodiAktif->nama }}</strong>
+                <button type="button" wire:click="hapusFilterProdi" style="margin-left:auto;color:#2f43b8;background:none;border:0;font-weight:600;cursor:pointer;text-decoration:underline;">
+                    Hapus filter
+                </button>
+            </div>
+        @endif
+
         <div class="sd-filters">
             <input type="text" wire:model.live.debounce.400ms="cari" placeholder="Cari Data Dosen">
             <select wire:model.live="berdasarkan">
                 <option value="nama">Berdasarkan Nama</option>
                 <option value="nidn">Berdasarkan NIDN</option>
+                <option value="nuptk">Berdasarkan NUPTK</option>
             </select>
             <select wire:model.live="perHalaman">
                 <option value="10">10</option>
@@ -69,6 +79,7 @@
                             </td>
                             <td>
                                 <dl class="sd-kv">
+                                    <dt>NUPTK</dt><dd>{{ $d->nuptk ?: '—' }}</dd>
                                     <dt>NIDN</dt><dd>{{ $d->nidn ?: '—' }}</dd>
                                     <dt>Nama</dt><dd>{{ $d->name }}</dd>
                                 </dl>
@@ -97,18 +108,19 @@
     <x-filament::section icon="heroicon-o-information-circle" heading="Cara pakai" collapsible collapsed>
         <ol style="margin:0;padding-left:18px;line-height:1.9;font-size:13px;color:#374151;">
             <li>Unduh <strong>template CSV</strong> (tombol di atas) atau ekspor data dosen dari SIAKAD/PDDIKTI.</li>
-            <li>Kolom: <code>nidn</code>, <code>name</code>, <code>gelar_depan</code>, <code>gelar_belakang</code>,
+            <li>Kolom: <code>nuptk</code>, <code>nidn</code>, <code>name</code>, <code>gelar_depan</code>, <code>gelar_belakang</code>,
                 <code>sinta_id</code>, <code>pendidikan_terakhir</code>,
                 <code>sinta_score_overall_v2</code>, <code>sinta_score_3yr_v2</code>,
                 <code>sinta_score_overall_v3</code>, <code>sinta_score_3yr_v3</code>,
                 <code>phone_number</code>, <code>jabatan</code>, <code>kompetensi</code>, <code>kode_prodi</code>.
-                Hanya <code>nidn</code> dan <code>name</code> yang wajib — email tidak diminta lagi,
-                akun baru otomatis diberi email placeholder karena dosen login memakai <strong>NIDN</strong>.
+                Hanya <code>name</code> yang wajib, plus salah satu dari <code>nidn</code>/<code>nuptk</code>
+                (NUPTK untuk dosen tidak tetap yang belum punya NIDN) — email tidak diminta lagi,
+                akun baru otomatis diberi email placeholder karena dosen login memakai <strong>NIDN/NUPTK</strong>.
                 <code>gelar_depan</code>/<code>gelar_belakang</code> otomatis digabung ke nama lengkap.</li>
             <li>Klik <strong>Impor CSV Dosen</strong>, unggah berkas, dan petakan kolom bila perlu.</li>
-            <li>Baris dicocokkan berdasarkan <strong>NIDN</strong>: akun yang sudah ada
+            <li>Baris dicocokkan berdasarkan <strong>NIDN atau NUPTK</strong>: akun yang sudah ada
                 <em>diperbarui</em>, yang belum ada <em>dibuat</em> dengan peran <strong>dosen</strong>
-                dan kata sandi acak (dosen login pakai NIDN, ganti kata sandi lewat profil setelah masuk pertama kali).</li>
+                dan kata sandi acak (dosen login pakai NIDN/NUPTK, ganti kata sandi lewat profil setelah masuk pertama kali).</li>
             <li><code>kode_prodi</code> ditautkan ke Program Studi bila kodenya sudah terdaftar
                 (lihat menu <strong>Sinkronisasi Prodi</strong>).</li>
             <li>Aplikasi ini tidak terhubung ke PDDIKTI nasional (beda dari BIMA), jadi belum ada sinkronisasi

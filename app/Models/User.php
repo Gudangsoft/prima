@@ -32,6 +32,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'name',
         'email',
         'password',
+        'nuptk',
         'nidn',
         'sinta_id',
         'sinta_score_overall_v2',

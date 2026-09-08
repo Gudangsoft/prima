@@ -7,6 +7,7 @@ namespace App\Filament\Pages;
 use App\Enums\Role as RoleEnum;
 use App\Filament\Imports\DosenImporter;
 use App\Filament\Resources\UserResource;
+use App\Models\ProgramStudi;
 use App\Models\User;
 use App\Support\Settings;
 use Filament\Actions\Action;
@@ -48,6 +49,9 @@ class SinkronisasiDosen extends Page
     #[Url]
     public int $perHalaman = 10;
 
+    #[Url]
+    public ?int $prodi = null;
+
     public static function canAccess(): bool
     {
         return auth()->user()?->can('create', User::class) ?? false;
@@ -63,17 +67,38 @@ class SinkronisasiDosen extends Page
         return Settings::institution()['nama'] ?: (string) Settings::get('app_name', 'SIP2M');
     }
 
+    public function getProdiAktifProperty(): ?ProgramStudi
+    {
+        return $this->prodi ? ProgramStudi::find($this->prodi) : null;
+    }
+
+    public function hapusFilterProdi(): void
+    {
+        $this->prodi = null;
+        $this->resetPage();
+    }
+
     /** @return LengthAwarePaginator<int, User> */
     public function getDosenProperty(): LengthAwarePaginator
     {
-        $kolom = $this->berdasarkan === 'nidn' ? 'nidn' : 'name';
+        $kolom = match ($this->berdasarkan) {
+            'nidn' => 'nidn',
+            'nuptk' => 'nuptk',
+            default => 'name',
+        };
 
         return User::query()
             ->role(RoleEnum::Dosen->value)
             ->when($this->cari !== '', fn ($q) => $q->where($kolom, 'like', '%'.$this->cari.'%'))
+            ->when($this->prodi, fn ($q) => $q->where('program_studi_id', $this->prodi))
             ->with('programStudi')
             ->orderBy('name')
             ->paginate($this->perHalaman);
+    }
+
+    public static function urlUntukProdi(int $prodiId): string
+    {
+        return static::getUrl(['prodi' => $prodiId]);
     }
 
     public function editUrl(User $dosen): string
@@ -94,8 +119,8 @@ class SinkronisasiDosen extends Page
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
                 ->action(fn () => response()->streamDownload(
-                    fn () => print ("nidn,name,gelar_depan,gelar_belakang,sinta_id,pendidikan_terakhir,sinta_score_overall_v2,sinta_score_3yr_v2,sinta_score_overall_v3,sinta_score_3yr_v3,phone_number,jabatan,kompetensi,kode_prodi\n"
-                        ."0401019001,BUDI SANTOSO,Dr,\"S.Kom, M.Kom\",257669,S2,771.5,391.5,1123.87,620.2,081234567890,Lektor,\"Rekayasa Perangkat Lunak\",55201\n"),
+                    fn () => print ("nuptk,nidn,name,gelar_depan,gelar_belakang,sinta_id,pendidikan_terakhir,sinta_score_overall_v2,sinta_score_3yr_v2,sinta_score_overall_v3,sinta_score_3yr_v3,phone_number,jabatan,kompetensi,kode_prodi\n"
+                        .",0401019001,BUDI SANTOSO,Dr,\"S.Kom, M.Kom\",257669,S2,771.5,391.5,1123.87,620.2,081234567890,Lektor,\"Rekayasa Perangkat Lunak\",55201\n"),
                     'template-dosen.csv',
                     ['Content-Type' => 'text/csv'],
                 )),

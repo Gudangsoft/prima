@@ -43,6 +43,10 @@ class EditProfile extends BaseEditProfile
                     ->columns(2)
                     ->schema([
                         $this->getNameFormComponent(),
+                        TextInput::make('nuptk')
+                            ->label('NUPTK')
+                            ->maxLength(20)
+                            ->unique(ignoreRecord: true),
                         TextInput::make('nidn')
                             ->label('NIDN')
                             ->maxLength(20)

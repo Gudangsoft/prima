@@ -44,6 +44,18 @@ class LoginWithNidnTest extends TestCase
         $this->assertAuthenticatedAs($dosen);
     }
 
+    public function test_dosen_can_login_with_nuptk(): void
+    {
+        $dosen = User::factory()->create(['nidn' => null, 'nuptk' => '1234567890123456', 'password' => 'password']);
+        $dosen->assignRole('dosen');
+
+        Livewire::test(Login::class)
+            ->fillForm(['email' => '1234567890123456', 'password' => 'password'])
+            ->call('authenticate');
+
+        $this->assertAuthenticatedAs($dosen);
+    }
+
     public function test_account_without_nidn_still_logs_in_with_email(): void
     {
         $admin = User::factory()->create(['nidn' => null, 'password' => 'password']);
