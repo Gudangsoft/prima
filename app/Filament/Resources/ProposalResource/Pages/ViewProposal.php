@@ -22,6 +22,8 @@ class ViewProposal extends ViewRecord
 {
     protected static string $resource = ProposalResource::class;
 
+    protected static string $view = 'filament.resources.proposal-resource.pages.view-proposal';
+
     /** Baris keanggotaan user saat ini yang masih menunggu persetujuan. */
     private function pendingMembership(): ?ProposalMember
     {

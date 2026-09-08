@@ -152,9 +152,10 @@ class ProposalResource extends Resource
     {
         return $infolist->schema([
             Infolists\Components\Section::make('Identitas Usulan')
-                ->columns(2)
+                ->icon('heroicon-o-identification')
+                ->iconColor('primary')
+                ->columns(3)
                 ->schema([
-                    Infolists\Components\TextEntry::make('judul')->weight('bold')->columnSpanFull(),
                     Infolists\Components\TextEntry::make('kelompok_skema')->label('Kelompok Skema')->placeholder('—'),
                     Infolists\Components\TextEntry::make('scheme.nama_skema')->label('Ruang Lingkup'),
                     Infolists\Components\TextEntry::make('scheme.kategori')
@@ -174,17 +175,19 @@ class ProposalResource extends Resource
                     Infolists\Components\TextEntry::make('tahun_anggaran')->label('Tahun Pelaksanaan'),
                     Infolists\Components\TextEntry::make('makro_riset')->label('Nama Makro Riset')->placeholder('—'),
                     Infolists\Components\TextEntry::make('submitter.sinta_id')->label('Profil SINTA Ketua')->placeholder('—'),
-                    Infolists\Components\TextEntry::make('status')
-                        ->badge()
-                        ->formatStateUsing(fn (ProposalStatus $state): string => $state->label())
-                        ->color(fn (ProposalStatus $state): string => $state->color()),
                     Infolists\Components\TextEntry::make('file_proposal')
                         ->label('Berkas Proposal')
                         ->placeholder('Belum diunggah')
-                        ->formatStateUsing(fn (?string $state): string => $state ? basename($state) : '—'),
+                        ->icon('heroicon-o-paper-clip')
+                        ->color(fn (Proposal $record): ?string => $record->file_proposal ? 'primary' : null)
+                        ->formatStateUsing(fn (?string $state): string => $state ? basename($state) : '—')
+                        ->url(fn (Proposal $record): ?string => $record->file_proposal ? route('download.proposal', $record) : null)
+                        ->openUrlInNewTab(),
                 ]),
 
             Infolists\Components\Section::make('Identitas Anggota Dosen')
+                ->icon('heroicon-o-users')
+                ->iconColor('primary')
                 ->schema([
                     Infolists\Components\RepeatableEntry::make('anggota_dosen')
                         ->hiddenLabel()
@@ -203,6 +206,9 @@ class ProposalResource extends Resource
                 ]),
 
             Infolists\Components\Section::make('Identitas Anggota Non Dosen')
+                ->icon('heroicon-o-user-group')
+                ->iconColor('gray')
+                ->collapsible()
                 ->visible(fn (Proposal $record): bool => $record->members->where('jenis', '!=', MemberType::Dosen)->isNotEmpty())
                 ->schema([
                     Infolists\Components\RepeatableEntry::make('anggota_non_dosen')
@@ -220,11 +226,14 @@ class ProposalResource extends Resource
                 ]),
 
             Infolists\Components\Section::make('Substansi dan Luaran')
+                ->description('Abstrak, ringkasan substansi, dan target luaran yang dijanjikan.')
+                ->icon('heroicon-o-light-bulb')
+                ->iconColor('warning')
                 ->schema([
-                    Infolists\Components\TextEntry::make('makro_riset')->label('Nama Makro Riset')->placeholder('—'),
                     Infolists\Components\TextEntry::make('abstrak')->label('Abstrak')->prose()->columnSpanFull(),
                     Infolists\Components\TextEntry::make('substansi_file')
                         ->label('Berkas Substansi')->placeholder('—')
+                        ->icon('heroicon-o-paper-clip')
                         ->formatStateUsing(fn (?string $state): string => $state ? basename($state) : '—'),
                     Infolists\Components\RepeatableEntry::make('outputTargets')
                         ->label('Target Luaran')
@@ -236,10 +245,15 @@ class ProposalResource extends Resource
                             Infolists\Components\TextEntry::make('jenis_luaran')->label('Jenis Luaran'),
                             Infolists\Components\TextEntry::make('target')->label('Target')->placeholder('—'),
                             Infolists\Components\TextEntry::make('keterangan')->label('Keterangan')->placeholder('—'),
-                        ]),
+                        ])
+                        ->placeholder('Belum ada target luaran'),
                 ]),
 
             Infolists\Components\Section::make('8 Bidang Strategis')
+                ->icon('heroicon-o-squares-2x2')
+                ->iconColor('gray')
+                ->collapsible()
+                ->collapsed()
                 ->schema([
                     Infolists\Components\RepeatableEntry::make('strategicFields')
                         ->hiddenLabel()
@@ -253,9 +267,14 @@ class ProposalResource extends Resource
                 ]),
 
             Infolists\Components\Section::make('Rancangan Anggaran Biaya (RAB)')
+                ->icon('heroicon-o-banknotes')
+                ->iconColor('success')
                 ->schema([
                     Infolists\Components\TextEntry::make('total_rab')
                         ->label('Total Anggaran yang diajukan')
+                        ->weight('bold')
+                        ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
+                        ->color('success')
                         ->money('IDR', locale: 'id'),
                     Infolists\Components\RepeatableEntry::make('rabItems')
                         ->hiddenLabel()
@@ -273,6 +292,9 @@ class ProposalResource extends Resource
                 ]),
 
             Infolists\Components\Section::make('Mitra')
+                ->icon('heroicon-o-building-office-2')
+                ->iconColor('gray')
+                ->collapsible()
                 ->visible(fn (Proposal $record): bool => $record->partners->isNotEmpty())
                 ->schema([
                     Infolists\Components\RepeatableEntry::make('partners')
@@ -288,6 +310,8 @@ class ProposalResource extends Resource
                 ]),
 
             Infolists\Components\Section::make('Penetapan Pendanaan')
+                ->icon('heroicon-o-currency-dollar')
+                ->iconColor('success')
                 ->columns(3)
                 ->visible(fn (Proposal $record): bool => $record->fundingDecision !== null)
                 ->schema([
@@ -298,6 +322,7 @@ class ProposalResource extends Resource
                         ->color(fn (FundingStatus $state): string => $state->color()),
                     Infolists\Components\TextEntry::make('fundingDecision.jumlah_dana')
                         ->label('Jumlah dana')
+                        ->weight('bold')
                         ->money('IDR', locale: 'id'),
                     Infolists\Components\TextEntry::make('fundingDecision.sk_pendanaan')
                         ->label('Nomor SK')
@@ -311,6 +336,9 @@ class ProposalResource extends Resource
                 ]),
 
             Infolists\Components\Section::make('Monev Internal PT')
+                ->icon('heroicon-o-clipboard-document-check')
+                ->iconColor('gray')
+                ->collapsible()
                 ->columns(3)
                 ->visible(fn (Proposal $record): bool => $record->monevInternal !== null)
                 ->schema([

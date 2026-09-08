@@ -73,13 +73,13 @@ class DosenMenuTest extends TestCase
 
         $penItem = collect($items)->first(fn ($item) => $item->getLabel() === 'Riset Dasar Unggulan');
         $this->assertSame(
-            ProposalResource::getUrl('create', ['kat' => 'penelitian', 'scheme' => $pen->id]),
+            Kegiatan::urlFor('penelitian', 'usulan', $pen->id),
             $penItem->getUrl(),
         );
 
         $pkmItem = collect($items)->first(fn ($item) => $item->getLabel() === 'PKM Kemitraan Masyarakat');
         $this->assertSame(
-            ProposalResource::getUrl('create', ['kat' => 'pengabdian', 'scheme' => $pkm->id]),
+            Kegiatan::urlFor('pengabdian', 'usulan', $pkm->id),
             $pkmItem->getUrl(),
         );
     }
@@ -165,7 +165,7 @@ class DosenMenuTest extends TestCase
             ->assertSee($pkm->nama_skema);
     }
 
-    public function test_create_form_preselects_scheme_from_menu_link(): void
+    public function test_create_form_preselects_scheme_from_query_params(): void
     {
         $this->actAs('dosen');
 
@@ -175,6 +175,46 @@ class DosenMenuTest extends TestCase
             ->test(CreateProposal::class)
             ->assertOk()
             ->assertFormSet(['scheme_id' => $pen->id]);
+    }
+
+    public function test_menu_link_opens_usulan_table_filtered_to_that_scheme(): void
+    {
+        $dosen = $this->actAs('dosen');
+
+        $pen = ProposalScheme::factory()->penelitian()->create(['nama_skema' => 'Riset Dasar Unggulan']);
+        $penLain = ProposalScheme::factory()->penelitian()->create(['nama_skema' => 'Riset Terapan Lain']);
+
+        Proposal::factory()->forDosen($dosen)->forScheme($pen)->create(['judul' => 'Usulan Skema Ini']);
+        Proposal::factory()->forDosen($dosen)->forScheme($penLain)->create(['judul' => 'Usulan Skema Lain']);
+
+        $test = Livewire::withQueryParams(['kategori' => 'penelitian', 'tab' => 'usulan', 'skema' => $pen->id])
+            ->test(Kegiatan::class)
+            ->assertOk()
+            ->assertSee('Riset Dasar Unggulan')
+            ->assertSee('Hapus filter');
+
+        $this->assertCount(1, $test->instance()->getRowsProperty());
+
+        // Tombol "Ajukan Usulan Baru" pada halaman terfilter membawa skema ini.
+        $test->assertSeeHtml(e(ProposalResource::getUrl('create', ['kat' => 'penelitian', 'scheme' => $pen->id])));
+    }
+
+    public function test_kegiatan_ignores_inactive_or_foreign_kategori_scheme_param(): void
+    {
+        $this->actAs('dosen');
+
+        $nonaktif = ProposalScheme::factory()->penelitian()->nonaktif()->create();
+        $pengabdian = ProposalScheme::factory()->pengabdian()->create();
+
+        Livewire::withQueryParams(['kategori' => 'penelitian', 'tab' => 'usulan', 'skema' => $nonaktif->id])
+            ->test(Kegiatan::class)
+            ->assertOk()
+            ->assertSet('skema', null);
+
+        Livewire::withQueryParams(['kategori' => 'penelitian', 'tab' => 'usulan', 'skema' => $pengabdian->id])
+            ->test(Kegiatan::class)
+            ->assertOk()
+            ->assertSet('skema', null);
     }
 
     public function test_modul_belum_tersedia_renders(): void

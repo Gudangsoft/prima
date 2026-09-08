@@ -40,6 +40,10 @@ class Kegiatan extends Page
     #[Url]
     public ?int $tahun = null;
 
+    /** Skema aktif dari menu dosen (klik nama skema); menyaring tabel Usulan. */
+    #[Url]
+    public ?int $skema = null;
+
     public const TABS = [
         'usulan' => 'Usulan',
         'bimtek' => 'Bimbingan Teknis',
@@ -61,9 +65,13 @@ class Kegiatan extends Page
             && ! $user->hasAnyRole(['admin_lppm', 'pimpinan', 'super_admin']);
     }
 
-    public static function urlFor(string $kategori, string $tab = 'usulan'): string
+    public static function urlFor(string $kategori, string $tab = 'usulan', ?int $skema = null): string
     {
-        return static::getUrl(['kategori' => $kategori, 'tab' => $tab]);
+        return static::getUrl(array_filter([
+            'kategori' => $kategori,
+            'tab' => $tab,
+            'skema' => $skema,
+        ], fn ($v) => $v !== null));
     }
 
     public function mount(): void
@@ -75,6 +83,21 @@ class Kegiatan extends Page
         if (! array_key_exists($this->tab, self::TABS)) {
             $this->tab = 'usulan';
         }
+
+        if ($this->skema !== null && ! ProposalScheme::query()
+            ->aktif()->kategori($this->kategori)->whereKey($this->skema)->exists()) {
+            $this->skema = null;
+        }
+    }
+
+    public function hapusFilterSkema(): void
+    {
+        $this->skema = null;
+    }
+
+    public function getSkemaAktifProperty(): ?ProposalScheme
+    {
+        return $this->skema ? ProposalScheme::find($this->skema) : null;
     }
 
     public function getTitle(): string
@@ -94,12 +117,16 @@ class Kegiatan extends Page
 
     public function getSectionHeading(): string
     {
-        return match ($this->tab) {
+        $dasar = match ($this->tab) {
             'bimtek' => 'BIMTEK '.Str::upper($this->katLabel()),
             'perbaikan' => 'Daftar Usulan '.$this->katLabel().' didanai',
             'luaran' => 'Pengkinian Capaian Luaran '.Str::upper($this->katLabel()),
             default => self::TABS[$this->tab].' '.$this->katLabel(),
         };
+
+        $skemaAktif = $this->tab === 'usulan' ? $this->getSkemaAktifProperty() : null;
+
+        return $skemaAktif ? $dasar.' — '.$skemaAktif->nama_skema : $dasar;
     }
 
     /** @return array<int, int|string> */
@@ -131,7 +158,10 @@ class Kegiatan extends Page
                 ->icon('heroicon-m-plus')
                 ->visible(fn (): bool => $this->tab === 'usulan'
                     && auth()->user()->can('create', ProposalResource::getModel()))
-                ->url(ProposalResource::getUrl('create', ['kat' => $this->kategori])),
+                ->url(fn (): string => ProposalResource::getUrl('create', array_filter([
+                    'kat' => $this->kategori,
+                    'scheme' => $this->skema,
+                ]))),
         ];
     }
 
@@ -202,6 +232,7 @@ class Kegiatan extends Page
         $q = Proposal::query()
             ->whereHas('scheme', fn (Builder $s) => $s->where('kategori', $this->kategori))
             ->when($this->tahun, fn (Builder $b) => $b->where('tahun_anggaran', $this->tahun))
+            ->when($this->tab === 'usulan' && $this->skema, fn (Builder $b) => $b->where('scheme_id', $this->skema))
             ->with('scheme:id,nama_skema')
             ->orderByDesc('updated_at');
 
