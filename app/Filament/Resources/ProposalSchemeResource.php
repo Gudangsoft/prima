@@ -87,8 +87,23 @@ class ProposalSchemeResource extends Resource
 
             Forms\Components\Toggle::make('aktif')
                 ->label('Aktif')
-                ->helperText('Hanya skema aktif yang bisa dipilih dosen saat mengajukan usulan.')
-                ->default(true),
+                ->helperText('Sakelar utama. Nonaktifkan untuk menutup skema kapan saja, di luar periode di bawah.')
+                ->default(true)
+                ->columnSpanFull(),
+
+            Forms\Components\DatePicker::make('tanggal_buka')
+                ->label('Tanggal Buka')
+                ->native(false)
+                ->displayFormat('d M Y')
+                ->helperText('Opsional. Kosongkan bila terbuka sejak sekarang.'),
+
+            Forms\Components\DatePicker::make('tanggal_tutup')
+                ->label('Tanggal Tutup')
+                ->native(false)
+                ->displayFormat('d M Y')
+                ->afterOrEqual('tanggal_buka')
+                ->validationMessages(['after_or_equal' => 'Tanggal tutup harus setelah atau sama dengan tanggal buka.'])
+                ->helperText('Opsional. Skema otomatis tidak muncul lagi ke dosen setelah tanggal ini (gaya "Buka Usulan" BIMA).'),
         ]);
     }
 
@@ -132,6 +147,17 @@ class ProposalSchemeResource extends Resource
 
                 Tables\Columns\ToggleColumn::make('aktif')
                     ->label('Aktif'),
+
+                Tables\Columns\TextColumn::make('status_periode')
+                    ->label('Status')
+                    ->badge()
+                    ->state(fn (ProposalScheme $record): string => $record->statusPeriode())
+                    ->color(fn (ProposalScheme $record): string => $record->statusPeriodeColor()),
+
+                Tables\Columns\TextColumn::make('periode')
+                    ->label('Periode')
+                    ->state(fn (ProposalScheme $record): string => $record->periodeLabel() ?? '—')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Diperbarui')

@@ -145,10 +145,11 @@ class AdminPanelProvider extends PanelProvider
         foreach (['Penelitian' => 'penelitian', 'Pengabdian' => 'pengabdian'] as $group => $kategori) {
             $sort = 0;
 
-            // Gaya BIMA: submenu HANYA berisi skema aktif, satu item per skema ->
-            // ke tabel Usulan skema itu (bisa lihat usulan yang sudah ada, lalu
-            // "Ajukan Usulan Baru" dari sana) — bukan langsung ke form kosong.
-            foreach (ProposalScheme::query()->aktif()->kategori($kategori)->orderBy('nama_skema')->get() as $skema) {
+            // Gaya BIMA: submenu HANYA berisi skema yang sedang tersedia (aktif +
+            // dalam periode buka—tutup), satu item per skema -> ke tabel Usulan
+            // skema itu (bisa lihat usulan yang sudah ada, lalu "Ajukan Usulan
+            // Baru" dari sana) — bukan langsung ke form kosong.
+            foreach ($this->skemaAktifUntukNavigasi($kategori) as $skema) {
                 $items[] = NavigationItem::make($skema->nama_skema)
                     ->group($group)->sort(++$sort)->visible($isDosen)
                     ->url(fn (): string => Kegiatan::urlFor($kategori, 'usulan', $skema->id))
@@ -167,6 +168,28 @@ class AdminPanelProvider extends PanelProvider
         }
 
         return $items;
+    }
+
+    /**
+     * Query skema tersedia dibungkus try-catch dengan sengaja: array navigasi
+     * ini dibangun sekali secara EAGER saat Filament boot panel — sesuatu yang
+     * terjadi di SETIAP request maupun perintah artisan (termasuk `migrate`
+     * itu sendiri, lewat callback booted() FilamentServiceProvider). Kalau
+     * query di sini gagal karena kolom/tabel belum ada (mis. tepat sebelum
+     * migration terbaru dijalankan), tanpa guard ini `php artisan migrate`
+     * bisa gagal boot dan tak pernah sampai menjalankan migration yang
+     * seharusnya memperbaikinya sendiri. Gagal senyap -> menu kosong sesaat,
+     * jauh lebih aman daripada mengunci deploy.
+     *
+     * @return iterable<ProposalScheme>
+     */
+    private function skemaAktifUntukNavigasi(string $kategori): iterable
+    {
+        try {
+            return ProposalScheme::query()->tersedia()->kategori($kategori)->orderBy('nama_skema')->get();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**

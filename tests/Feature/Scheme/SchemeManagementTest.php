@@ -129,4 +129,90 @@ class SchemeManagementTest extends TestCase
             ->call('create')
             ->assertHasFormErrors(['dana_max']);
     }
+
+    public function test_admin_lppm_can_set_periode_buka_tutup(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        Livewire::test(CreateProposalScheme::class)
+            ->fillForm([
+                'nama_skema' => 'Penelitian Periode',
+                'kategori' => 'penelitian',
+                'tanggal_buka' => now()->toDateString(),
+                'tanggal_tutup' => now()->addMonth()->toDateString(),
+                'aktif' => true,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $scheme = ProposalScheme::where('nama_skema', 'Penelitian Periode')->firstOrFail();
+        $this->assertNotNull($scheme->tanggal_buka);
+        $this->assertNotNull($scheme->tanggal_tutup);
+        $this->assertSame('Terbuka', $scheme->statusPeriode());
+        $this->assertNotNull($scheme->periodeLabel());
+    }
+
+    public function test_tanggal_tutup_must_be_after_or_equal_tanggal_buka(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        Livewire::test(CreateProposalScheme::class)
+            ->fillForm([
+                'nama_skema' => 'Skema Periode Invalid',
+                'kategori' => 'penelitian',
+                'tanggal_buka' => now()->toDateString(),
+                'tanggal_tutup' => now()->subDays(3)->toDateString(),
+                'aktif' => true,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['tanggal_tutup']);
+    }
+
+    public function test_tersedia_scope_respects_aktif_and_periode(): void
+    {
+        $tanpaPeriode = ProposalScheme::factory()->create();
+        $nonaktif = ProposalScheme::factory()->nonaktif()->create();
+        $belumDibuka = ProposalScheme::factory()->create(['tanggal_buka' => now()->addWeek()]);
+        $sudahTutup = ProposalScheme::factory()->create(['tanggal_tutup' => now()->subWeek()]);
+        $sedangBuka = ProposalScheme::factory()->create([
+            'tanggal_buka' => now()->subDay(), 'tanggal_tutup' => now()->addDay(),
+        ]);
+
+        $tersedia = ProposalScheme::query()->tersedia()->pluck('id');
+
+        $this->assertTrue($tersedia->contains($tanpaPeriode->id));
+        $this->assertTrue($tersedia->contains($sedangBuka->id));
+        $this->assertFalse($tersedia->contains($nonaktif->id));
+        $this->assertFalse($tersedia->contains($belumDibuka->id));
+        $this->assertFalse($tersedia->contains($sudahTutup->id));
+
+        $this->assertSame('Belum Dibuka', $belumDibuka->statusPeriode());
+        $this->assertSame('Sudah Ditutup', $sudahTutup->statusPeriode());
+        $this->assertSame('Nonaktif', $nonaktif->statusPeriode());
+        $this->assertSame('Terbuka', $sedangBuka->statusPeriode());
+        $this->assertSame('Terbuka', $tanpaPeriode->statusPeriode());
+    }
+
+    public function test_scheme_outside_its_period_is_hidden_from_dosen_menu_and_wizard(): void
+    {
+        $this->actingOtpVerified('dosen');
+
+        ProposalScheme::factory()->penelitian()->create([
+            'nama_skema' => 'Skema Sudah Tutup', 'tanggal_tutup' => now()->subDay(),
+        ]);
+        ProposalScheme::factory()->penelitian()->create(['nama_skema' => 'Skema Sedang Buka']);
+
+        $method = new \ReflectionMethod(\App\Providers\Filament\AdminPanelProvider::class, 'dosenNavigationItems');
+        $method->setAccessible(true);
+        $labels = collect($method->invoke(new \App\Providers\Filament\AdminPanelProvider(app())))
+            ->map(fn ($i) => $i->getLabel());
+
+        $this->assertTrue($labels->contains('Skema Sedang Buka'));
+        $this->assertFalse($labels->contains('Skema Sudah Tutup'));
+
+        \Livewire\Livewire::withQueryParams(['kat' => 'penelitian'])
+            ->test(\App\Filament\Resources\ProposalResource\Pages\CreateProposal::class)
+            ->assertSee('Skema Sedang Buka')
+            ->assertDontSee('Skema Sudah Tutup');
+    }
 }

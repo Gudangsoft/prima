@@ -79,7 +79,7 @@ final class ProposalWizard
                         $kat = property_exists($livewire, 'kat') ? $livewire->kat : null;
 
                         return ProposalScheme::query()
-                            ->aktif()
+                            ->tersedia()
                             ->when(
                                 in_array($kat, ['penelitian', 'pengabdian'], true),
                                 fn (Builder $q) => $q->where('kategori', $kat),

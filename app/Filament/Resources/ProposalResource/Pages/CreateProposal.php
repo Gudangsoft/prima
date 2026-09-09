@@ -31,7 +31,7 @@ class CreateProposal extends CreateRecord
         }
 
         if ($this->scheme !== null) {
-            $skema = ProposalScheme::query()->aktif()->find($this->scheme);
+            $skema = ProposalScheme::query()->tersedia()->find($this->scheme);
 
             if ($skema === null || ($this->kat !== null && $skema->kategori->value !== $this->kat)) {
                 $this->scheme = null;

@@ -81,7 +81,7 @@ class Kegiatan extends Page
         }
 
         if ($this->skema !== null && ! ProposalScheme::query()
-            ->aktif()->kategori($this->kategori)->whereKey($this->skema)->exists()) {
+            ->tersedia()->kategori($this->kategori)->whereKey($this->skema)->exists()) {
             $this->skema = null;
         }
     }
@@ -177,7 +177,7 @@ class Kegiatan extends Page
         $eligible = [];
         $tidak = [];
 
-        foreach (ProposalScheme::query()->aktif()->kategori($this->kategori)->orderBy('nama_skema')->get() as $skema) {
+        foreach (ProposalScheme::query()->tersedia()->kategori($this->kategori)->orderBy('nama_skema')->get() as $skema) {
             $sudahMengajukan = Proposal::query()
                 ->where('scheme_id', $skema->id)
                 ->where('tahun_anggaran', $tahun)
