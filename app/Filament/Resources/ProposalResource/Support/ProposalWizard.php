@@ -61,7 +61,7 @@ final class ProposalWizard
                             ->visible(fn (Get $get): bool => filled(ProposalScheme::find($get('scheme_id'))?->template_path)),
                     )
                     ->helperText(function (Get $get): ?string {
-                        $skema = ProposalScheme::find($get('scheme_id'));
+                        $skema = ProposalScheme::with('luarans')->find($get('scheme_id'));
 
                         if ($skema === null) {
                             return null;
@@ -69,7 +69,7 @@ final class ProposalWizard
 
                         $keterangan = collect([
                             $skema->rentangDanaLabel() ? 'Biaya: '.$skema->rentangDanaLabel() : null,
-                            $skema->target_luaran ? 'Target Luaran: '.$skema->target_luaran : null,
+                            $skema->luaranSummary(),
                         ])->filter();
 
                         return $keterangan->isNotEmpty() ? $keterangan->implode(' · ') : null;

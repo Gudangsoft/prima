@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Scheme;
 
 use App\Filament\Resources\ProposalSchemeResource\Pages\CreateProposalScheme;
+use App\Filament\Resources\ProposalSchemeResource\Pages\EditProposalScheme;
 use App\Models\ProposalScheme;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -91,7 +92,7 @@ class SchemeManagementTest extends TestCase
         }
     }
 
-    public function test_admin_lppm_can_set_dana_range_and_target_luaran(): void
+    public function test_admin_lppm_can_set_dana_range(): void
     {
         $this->actingOtpVerified('admin_lppm');
 
@@ -101,7 +102,6 @@ class SchemeManagementTest extends TestCase
                 'kategori' => 'penelitian',
                 'dana_min' => 5_000_000,
                 'dana_max' => 15_000_000,
-                'target_luaran' => 'Minimal 1 artikel jurnal SINTA 2 dan 1 produk/prototipe.',
                 'aktif' => true,
             ])
             ->call('create')
@@ -110,7 +110,6 @@ class SchemeManagementTest extends TestCase
         $scheme = ProposalScheme::where('nama_skema', 'Penelitian Kolaborasi')->firstOrFail();
         $this->assertSame(5_000_000.0, $scheme->dana_min);
         $this->assertSame(15_000_000.0, $scheme->dana_max);
-        $this->assertSame('Minimal 1 artikel jurnal SINTA 2 dan 1 produk/prototipe.', $scheme->target_luaran);
         $this->assertSame('Rp5.000.000 — Rp15.000.000', $scheme->rentangDanaLabel());
     }
 
@@ -214,5 +213,82 @@ class SchemeManagementTest extends TestCase
             ->test(\App\Filament\Resources\ProposalResource\Pages\CreateProposal::class)
             ->assertSee('Skema Sedang Buka')
             ->assertDontSee('Skema Sudah Tutup');
+    }
+
+    public function test_admin_lppm_can_crud_luaran_wajib_dan_tambahan_via_repeater(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        Livewire::test(CreateProposalScheme::class)
+            ->fillForm([
+                'nama_skema' => 'Penelitian Terapan Unggulan',
+                'kategori' => 'penelitian',
+                'aktif' => true,
+                'luarans' => [
+                    ['jenis_luaran' => 'Artikel Jurnal Nasional Terakreditasi SINTA 2', 'wajib' => true, 'keterangan' => 'Minimal 1'],
+                    ['jenis_luaran' => 'HKI (Hak Kekayaan Intelektual)', 'wajib' => false, 'keterangan' => null],
+                ],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $scheme = ProposalScheme::where('nama_skema', 'Penelitian Terapan Unggulan')->firstOrFail();
+        $this->assertCount(2, $scheme->luarans);
+        $this->assertSame(1, $scheme->luaranWajib()->count());
+        $this->assertSame(1, $scheme->luaranTambahan()->count());
+
+        $wajib = $scheme->luaranWajib()->first();
+        $this->assertSame('Artikel Jurnal Nasional Terakreditasi SINTA 2', $wajib->jenis_luaran);
+        $this->assertSame('Minimal 1', $wajib->keterangan);
+
+        $this->assertStringContainsString('Luaran Wajib: Artikel Jurnal Nasional Terakreditasi SINTA 2', $scheme->luaranSummary());
+        $this->assertStringContainsString('Luaran Tambahan (opsional): HKI (Hak Kekayaan Intelektual)', $scheme->luaranSummary());
+    }
+
+    public function test_admin_lppm_can_edit_and_remove_luaran_rows(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        $scheme = ProposalScheme::factory()->penelitian()->create();
+        $scheme->luarans()->createMany([
+            ['jenis_luaran' => 'Luaran Lama', 'wajib' => true],
+            ['jenis_luaran' => 'Luaran Dihapus', 'wajib' => false],
+        ]);
+
+        Livewire::test(EditProposalScheme::class, ['record' => $scheme->getKey()])
+            ->fillForm([
+                'luarans' => [
+                    ['jenis_luaran' => 'Luaran Lama - Diperbarui', 'wajib' => true, 'keterangan' => null],
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $scheme->refresh();
+        $this->assertCount(1, $scheme->luarans);
+        $this->assertSame('Luaran Lama - Diperbarui', $scheme->luarans->first()->jenis_luaran);
+    }
+
+    public function test_luaran_wajib_and_tambahan_appear_on_pengusul_pages(): void
+    {
+        $this->actingOtpVerified('dosen');
+
+        $scheme = ProposalScheme::factory()->penelitian()->create(['nama_skema' => 'Riset Terapan Prioritas']);
+        $scheme->luarans()->createMany([
+            ['jenis_luaran' => 'Artikel Jurnal SINTA 2', 'wajib' => true],
+            ['jenis_luaran' => 'Buku Ajar', 'wajib' => false],
+        ]);
+
+        // Muncul di form pengajuan (hint saat memilih skema).
+        \Livewire\Livewire::withQueryParams(['kat' => 'penelitian', 'scheme' => $scheme->id])
+            ->test(\App\Filament\Resources\ProposalResource\Pages\CreateProposal::class)
+            ->assertSee('Luaran Wajib: Artikel Jurnal SINTA 2')
+            ->assertSee('Luaran Tambahan (opsional): Buku Ajar');
+
+        // Muncul juga di halaman Usulan yang difilter ke skema itu.
+        $this->get(\App\Filament\Pages\Kegiatan::urlFor('penelitian', 'usulan', $scheme->id))
+            ->assertOk()
+            ->assertSee('Luaran Wajib: Artikel Jurnal SINTA 2')
+            ->assertSee('Luaran Tambahan (opsional): Buku Ajar');
     }
 }

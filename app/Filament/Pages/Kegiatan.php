@@ -93,7 +93,7 @@ class Kegiatan extends Page
 
     public function getSkemaAktifProperty(): ?ProposalScheme
     {
-        return $this->skema ? ProposalScheme::find($this->skema) : null;
+        return $this->skema ? ProposalScheme::with('luarans')->find($this->skema) : null;
     }
 
     public function getTitle(): string

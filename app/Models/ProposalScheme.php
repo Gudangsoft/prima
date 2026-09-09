@@ -28,7 +28,6 @@ class ProposalScheme extends Model
         'deskripsi',
         'dana_min',
         'dana_max',
-        'target_luaran',
         'template_path',
         'aktif',
         'tanggal_buka',
@@ -51,6 +50,24 @@ class ProposalScheme extends Model
     public function proposals(): HasMany
     {
         return $this->hasMany(Proposal::class, 'scheme_id');
+    }
+
+    /** @return HasMany<ProposalSchemeLuaran> */
+    public function luarans(): HasMany
+    {
+        return $this->hasMany(ProposalSchemeLuaran::class)->orderBy('urutan');
+    }
+
+    /** @return HasMany<ProposalSchemeLuaran> */
+    public function luaranWajib(): HasMany
+    {
+        return $this->luarans()->where('wajib', true);
+    }
+
+    /** @return HasMany<ProposalSchemeLuaran> */
+    public function luaranTambahan(): HasMany
+    {
+        return $this->luarans()->where('wajib', false);
     }
 
     /** @param Builder<self> $query */
@@ -127,6 +144,24 @@ class ProposalScheme extends Model
     public function templateUrl(): ?string
     {
         return $this->template_path ? Storage::disk('public')->url($this->template_path) : null;
+    }
+
+    /**
+     * Ringkasan luaran wajib & tambahan dalam satu baris teks, untuk
+     * ditampilkan ke dosen (mis. hint di form pengajuan). Null bila skema
+     * belum punya target luaran sama sekali.
+     */
+    public function luaranSummary(): ?string
+    {
+        $wajib = $this->luarans->where('wajib', true)->pluck('jenis_luaran');
+        $tambahan = $this->luarans->where('wajib', false)->pluck('jenis_luaran');
+
+        $bagian = collect([
+            $wajib->isNotEmpty() ? 'Luaran Wajib: '.$wajib->implode(', ') : null,
+            $tambahan->isNotEmpty() ? 'Luaran Tambahan (opsional): '.$tambahan->implode(', ') : null,
+        ])->filter();
+
+        return $bagian->isNotEmpty() ? $bagian->implode(' · ') : null;
     }
 
     /** Kisaran biaya dalam format "Rp x — Rp y" (atau salah satu sisi bila hanya satu batas diisi). */

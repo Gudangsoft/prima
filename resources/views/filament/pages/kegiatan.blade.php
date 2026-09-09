@@ -73,12 +73,18 @@
         </div>
 
         @if ($this->tab === 'usulan' && $this->skemaAktif)
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 14px;background:#eef2fe;border:1px solid #dbe3fd;border-radius:8px;font-size:13px;color:#2f43b8;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 14px;background:#eef2fe;border:1px solid #dbe3fd;border-radius:8px;font-size:13px;color:#2f43b8;">
                 Filter Skema: <strong>{{ $this->skemaAktif->nama_skema }}</strong>
                 <button type="button" wire:click="hapusFilterSkema" style="margin-left:auto;color:#2f43b8;background:none;border:0;font-weight:600;cursor:pointer;text-decoration:underline;">
                     Hapus filter
                 </button>
             </div>
+
+            @if ($this->skemaAktif->luaranSummary())
+                <div style="margin-bottom:14px;padding:8px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12.5px;color:#92400e;">
+                    {{ $this->skemaAktif->luaranSummary() }}
+                </div>
+            @endif
         @endif
 
         @if ($this->tab === 'catatan')

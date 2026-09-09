@@ -12,6 +12,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProposalSchemeResource extends Resource
 {
@@ -67,11 +68,38 @@ class ProposalSchemeResource extends Resource
                 ->validationMessages(['gte' => 'Biaya maksimal harus lebih besar atau sama dengan biaya minimal.'])
                 ->helperText('Opsional. Batas dana yang boleh diajukan dosen pada skema ini.'),
 
-            Forms\Components\Textarea::make('target_luaran')
+            Forms\Components\Repeater::make('luarans')
+                ->relationship()
                 ->label('Target Luaran')
-                ->rows(3)
-                ->maxLength(2000)
-                ->helperText('Opsional. Syarat luaran wajib skema ini, mis. "1 artikel jurnal SINTA 2 + 1 produk/prototipe".')
+                ->addActionLabel('Tambah target luaran')
+                ->orderColumn('urutan')
+                ->reorderable()
+                ->collapsible()
+                ->defaultItems(0)
+                ->itemLabel(fn (array $state): ?string => $state['jenis_luaran'] ?? null)
+                ->helperText('Luaran Wajib harus dipenuhi dosen; Luaran Tambahan bersifat opsional (bonus/nilai lebih usulan).')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\TextInput::make('jenis_luaran')
+                        ->label('Jenis Luaran')
+                        ->required()
+                        ->maxLength(200)
+                        ->placeholder('mis. Artikel Jurnal Nasional Terakreditasi SINTA 2')
+                        ->columnSpanFull(),
+
+                    Forms\Components\ToggleButtons::make('wajib')
+                        ->label('Sifat')
+                        ->boolean('Wajib', 'Tambahan (opsional)')
+                        ->colors([1 => 'danger', 0 => 'gray'])
+                        ->default(true)
+                        ->inline()
+                        ->required(),
+
+                    Forms\Components\TextInput::make('keterangan')
+                        ->label('Keterangan')
+                        ->maxLength(255)
+                        ->placeholder('Opsional, mis. "minimal 1 per tahun"'),
+                ])
                 ->columnSpanFull(),
 
             Forms\Components\FileUpload::make('template_path')
@@ -110,6 +138,7 @@ class ProposalSchemeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('luarans'))
             ->columns([
                 Tables\Columns\TextColumn::make('nama_skema')
                     ->label('Nama skema')
@@ -134,10 +163,16 @@ class ProposalSchemeResource extends Resource
                     ->state(fn (ProposalScheme $record): string => $record->rentangDanaLabel() ?? '—')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('target_luaran')
+                Tables\Columns\TextColumn::make('luarans_count')
                     ->label('Target Luaran')
-                    ->limit(60)
-                    ->placeholder('—')
+                    ->state(function (ProposalScheme $record): string {
+                        $wajib = $record->luarans->where('wajib', true)->count();
+                        $tambahan = $record->luarans->where('wajib', false)->count();
+
+                        return $wajib === 0 && $tambahan === 0
+                            ? '—'
+                            : "{$wajib} Wajib · {$tambahan} Tambahan";
+                    })
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\IconColumn::make('template_path')
