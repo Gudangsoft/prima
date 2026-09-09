@@ -51,6 +51,29 @@ class ProposalSchemeResource extends Resource
                 ->maxLength(2000)
                 ->columnSpanFull(),
 
+            Forms\Components\TextInput::make('dana_min')
+                ->label('Biaya Minimal')
+                ->numeric()
+                ->minValue(0)
+                ->prefix('Rp')
+                ->helperText('Opsional. Kosongkan bila tidak ada batas bawah.'),
+
+            Forms\Components\TextInput::make('dana_max')
+                ->label('Biaya Maksimal')
+                ->numeric()
+                ->minValue(0)
+                ->prefix('Rp')
+                ->gte('dana_min')
+                ->validationMessages(['gte' => 'Biaya maksimal harus lebih besar atau sama dengan biaya minimal.'])
+                ->helperText('Opsional. Batas dana yang boleh diajukan dosen pada skema ini.'),
+
+            Forms\Components\Textarea::make('target_luaran')
+                ->label('Target Luaran')
+                ->rows(3)
+                ->maxLength(2000)
+                ->helperText('Opsional. Syarat luaran wajib skema ini, mis. "1 artikel jurnal SINTA 2 + 1 produk/prototipe".')
+                ->columnSpanFull(),
+
             Forms\Components\FileUpload::make('template_path')
                 ->label('Template usulan')
                 ->disk('public')
@@ -90,6 +113,17 @@ class ProposalSchemeResource extends Resource
                     ->counts('proposals')
                     ->alignCenter()
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('dana')
+                    ->label('Biaya')
+                    ->state(fn (ProposalScheme $record): string => $record->rentangDanaLabel() ?? '—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('target_luaran')
+                    ->label('Target Luaran')
+                    ->limit(60)
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\IconColumn::make('template_path')
                     ->label('Template')

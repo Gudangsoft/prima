@@ -26,6 +26,9 @@ class ProposalScheme extends Model
         'nama_skema',
         'kategori',
         'deskripsi',
+        'dana_min',
+        'dana_max',
+        'target_luaran',
         'template_path',
         'aktif',
     ];
@@ -35,6 +38,8 @@ class ProposalScheme extends Model
         return [
             'kategori' => Kategori::class,
             'aktif' => 'boolean',
+            'dana_min' => 'float',
+            'dana_max' => 'float',
         ];
     }
 
@@ -59,5 +64,18 @@ class ProposalScheme extends Model
     public function templateUrl(): ?string
     {
         return $this->template_path ? Storage::disk('public')->url($this->template_path) : null;
+    }
+
+    /** Kisaran biaya dalam format "Rp x — Rp y" (atau salah satu sisi bila hanya satu batas diisi). */
+    public function rentangDanaLabel(): ?string
+    {
+        $format = fn (float $v): string => 'Rp'.number_format($v, 0, ',', '.');
+
+        return match (true) {
+            $this->dana_min !== null && $this->dana_max !== null => $format($this->dana_min).' — '.$format($this->dana_max),
+            $this->dana_max !== null => 'Maks. '.$format($this->dana_max),
+            $this->dana_min !== null => 'Min. '.$format($this->dana_min),
+            default => null,
+        };
     }
 }

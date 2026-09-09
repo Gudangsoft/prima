@@ -90,4 +90,43 @@ class SchemeManagementTest extends TestCase
             $this->assertNotNull($scheme->templateUrl());
         }
     }
+
+    public function test_admin_lppm_can_set_dana_range_and_target_luaran(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        Livewire::test(CreateProposalScheme::class)
+            ->fillForm([
+                'nama_skema' => 'Penelitian Kolaborasi',
+                'kategori' => 'penelitian',
+                'dana_min' => 5_000_000,
+                'dana_max' => 15_000_000,
+                'target_luaran' => 'Minimal 1 artikel jurnal SINTA 2 dan 1 produk/prototipe.',
+                'aktif' => true,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $scheme = ProposalScheme::where('nama_skema', 'Penelitian Kolaborasi')->firstOrFail();
+        $this->assertSame(5_000_000.0, $scheme->dana_min);
+        $this->assertSame(15_000_000.0, $scheme->dana_max);
+        $this->assertSame('Minimal 1 artikel jurnal SINTA 2 dan 1 produk/prototipe.', $scheme->target_luaran);
+        $this->assertSame('Rp5.000.000 — Rp15.000.000', $scheme->rentangDanaLabel());
+    }
+
+    public function test_dana_max_must_be_greater_than_or_equal_to_dana_min(): void
+    {
+        $this->actingOtpVerified('admin_lppm');
+
+        Livewire::test(CreateProposalScheme::class)
+            ->fillForm([
+                'nama_skema' => 'Skema Dana Invalid',
+                'kategori' => 'penelitian',
+                'dana_min' => 20_000_000,
+                'dana_max' => 5_000_000,
+                'aktif' => true,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['dana_max']);
+    }
 }
