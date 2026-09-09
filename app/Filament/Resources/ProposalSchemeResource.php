@@ -35,103 +35,127 @@ class ProposalSchemeResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\TextInput::make('nama_skema')
-                ->label('Nama skema')
-                ->required()
-                ->maxLength(255),
-
-            Forms\Components\Select::make('kategori')
-                ->label('Kategori')
-                ->options(Kategori::options())
-                ->required()
-                ->native(false),
-
-            Forms\Components\Textarea::make('deskripsi')
-                ->label('Deskripsi')
-                ->rows(4)
-                ->maxLength(2000)
-                ->columnSpanFull(),
-
-            Forms\Components\TextInput::make('dana_min')
-                ->label('Biaya Minimal')
-                ->numeric()
-                ->minValue(0)
-                ->prefix('Rp')
-                ->helperText('Opsional. Kosongkan bila tidak ada batas bawah.'),
-
-            Forms\Components\TextInput::make('dana_max')
-                ->label('Biaya Maksimal')
-                ->numeric()
-                ->minValue(0)
-                ->prefix('Rp')
-                ->gte('dana_min')
-                ->validationMessages(['gte' => 'Biaya maksimal harus lebih besar atau sama dengan biaya minimal.'])
-                ->helperText('Opsional. Batas dana yang boleh diajukan dosen pada skema ini.'),
-
-            Forms\Components\Repeater::make('luarans')
-                ->relationship()
-                ->label('Target Luaran')
-                ->addActionLabel('Tambah target luaran')
-                ->orderColumn('urutan')
-                ->reorderable()
-                ->collapsible()
-                ->defaultItems(0)
-                ->itemLabel(fn (array $state): ?string => $state['jenis_luaran'] ?? null)
-                ->helperText('Luaran Wajib harus dipenuhi dosen; Luaran Tambahan bersifat opsional (bonus/nilai lebih usulan).')
-                ->columns(2)
+            Forms\Components\Section::make('Informasi Dasar')
+                ->icon('heroicon-o-identification')
+                ->iconColor('primary')
+                ->columns(3)
                 ->schema([
-                    Forms\Components\TextInput::make('jenis_luaran')
-                        ->label('Jenis Luaran')
+                    Forms\Components\TextInput::make('nama_skema')
+                        ->label('Nama skema')
                         ->required()
-                        ->maxLength(200)
-                        ->placeholder('mis. Artikel Jurnal Nasional Terakreditasi SINTA 2')
-                        ->columnSpanFull(),
-
-                    Forms\Components\ToggleButtons::make('wajib')
-                        ->label('Sifat')
-                        ->boolean('Wajib', 'Tambahan (opsional)')
-                        ->colors([1 => 'danger', 0 => 'gray'])
-                        ->default(true)
-                        ->inline()
-                        ->required(),
-
-                    Forms\Components\TextInput::make('keterangan')
-                        ->label('Keterangan')
                         ->maxLength(255)
-                        ->placeholder('Opsional, mis. "minimal 1 per tahun"'),
-                ])
-                ->columnSpanFull(),
+                        ->columnSpan(2),
 
-            Forms\Components\FileUpload::make('template_path')
-                ->label('Template usulan')
-                ->disk('public')
-                ->directory('skema-template')
-                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-                ->maxSize(10240)
-                ->downloadable()
-                ->previewable(false)
-                ->helperText('Opsional. PDF/Word, maks 10 MB — akan tersedia untuk diunduh dosen saat memilih skema ini.')
-                ->columnSpanFull(),
+                    Forms\Components\Select::make('kategori')
+                        ->label('Kategori')
+                        ->options(Kategori::options())
+                        ->required()
+                        ->native(false),
 
-            Forms\Components\Toggle::make('aktif')
-                ->label('Aktif')
-                ->helperText('Sakelar utama. Nonaktifkan untuk menutup skema kapan saja, di luar periode di bawah.')
-                ->default(true)
-                ->columnSpanFull(),
+                    Forms\Components\Textarea::make('deskripsi')
+                        ->label('Deskripsi')
+                        ->rows(3)
+                        ->maxLength(2000)
+                        ->columnSpanFull(),
+                ]),
 
-            Forms\Components\DatePicker::make('tanggal_buka')
-                ->label('Tanggal Buka')
-                ->native(false)
-                ->displayFormat('d M Y')
-                ->helperText('Opsional. Kosongkan bila terbuka sejak sekarang.'),
+            Forms\Components\Section::make('Biaya & Periode Pengajuan')
+                ->icon('heroicon-o-banknotes')
+                ->iconColor('success')
+                ->columns(4)
+                ->schema([
+                    Forms\Components\TextInput::make('dana_min')
+                        ->label('Biaya Minimal')
+                        ->numeric()
+                        ->minValue(0)
+                        ->prefix('Rp')
+                        ->helperText('Opsional.'),
 
-            Forms\Components\DatePicker::make('tanggal_tutup')
-                ->label('Tanggal Tutup')
-                ->native(false)
-                ->displayFormat('d M Y')
-                ->afterOrEqual('tanggal_buka')
-                ->validationMessages(['after_or_equal' => 'Tanggal tutup harus setelah atau sama dengan tanggal buka.'])
-                ->helperText('Opsional. Skema otomatis tidak muncul lagi ke dosen setelah tanggal ini (gaya "Buka Usulan" BIMA).'),
+                    Forms\Components\TextInput::make('dana_max')
+                        ->label('Biaya Maksimal')
+                        ->numeric()
+                        ->minValue(0)
+                        ->prefix('Rp')
+                        ->gte('dana_min')
+                        ->validationMessages(['gte' => 'Harus ≥ biaya minimal.'])
+                        ->helperText('Opsional.'),
+
+                    Forms\Components\DatePicker::make('tanggal_buka')
+                        ->label('Tanggal Buka')
+                        ->native(false)
+                        ->displayFormat('d M Y')
+                        ->helperText('Kosongkan = buka sekarang.'),
+
+                    Forms\Components\DatePicker::make('tanggal_tutup')
+                        ->label('Tanggal Tutup')
+                        ->native(false)
+                        ->displayFormat('d M Y')
+                        ->afterOrEqual('tanggal_buka')
+                        ->validationMessages(['after_or_equal' => 'Harus setelah/sama dengan tanggal buka.'])
+                        ->helperText('Otomatis hilang dari dosen setelah ini.'),
+                ]),
+
+            Forms\Components\Section::make('Target Luaran')
+                ->icon('heroicon-o-flag')
+                ->iconColor('warning')
+                ->collapsible()
+                ->schema([
+                    Forms\Components\Repeater::make('luarans')
+                        ->relationship()
+                        ->hiddenLabel()
+                        ->addActionLabel('Tambah target luaran')
+                        ->orderColumn('urutan')
+                        ->reorderable()
+                        ->collapsible()
+                        ->defaultItems(0)
+                        ->itemLabel(fn (array $state): ?string => $state['jenis_luaran'] ?? null)
+                        ->helperText('Luaran Wajib harus dipenuhi dosen; Luaran Tambahan bersifat opsional (bonus/nilai lebih usulan).')
+                        ->columns(3)
+                        ->schema([
+                            Forms\Components\TextInput::make('jenis_luaran')
+                                ->label('Jenis Luaran')
+                                ->required()
+                                ->maxLength(200)
+                                ->placeholder('mis. Artikel Jurnal Nasional Terakreditasi SINTA 2')
+                                ->columnSpan(2),
+
+                            Forms\Components\ToggleButtons::make('wajib')
+                                ->label('Sifat')
+                                ->boolean('Wajib', 'Tambahan (opsional)')
+                                ->colors([1 => 'danger', 0 => 'gray'])
+                                ->default(true)
+                                ->inline()
+                                ->required(),
+
+                            Forms\Components\TextInput::make('keterangan')
+                                ->label('Keterangan')
+                                ->maxLength(255)
+                                ->placeholder('Opsional, mis. "minimal 1 per tahun"')
+                                ->columnSpanFull(),
+                        ]),
+                ]),
+
+            Forms\Components\Section::make('Berkas & Status')
+                ->icon('heroicon-o-document-check')
+                ->iconColor('gray')
+                ->columns(3)
+                ->schema([
+                    Forms\Components\FileUpload::make('template_path')
+                        ->label('Template usulan')
+                        ->disk('public')
+                        ->directory('skema-template')
+                        ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                        ->maxSize(10240)
+                        ->downloadable()
+                        ->previewable(false)
+                        ->helperText('Opsional. PDF/Word, maks 10 MB — diunduh dosen saat memilih skema ini.')
+                        ->columnSpan(2),
+
+                    Forms\Components\Toggle::make('aktif')
+                        ->label('Aktif')
+                        ->helperText('Sakelar utama, di luar periode di atas.')
+                        ->default(true),
+                ]),
         ]);
     }
 
