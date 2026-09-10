@@ -40,6 +40,7 @@ class PengaturanWeb extends Page implements HasForms
     /** Key setelan yang dikelola halaman ini. */
     private const KEYS = [
         'app_name', 'primary_color', 'logo_path', 'favicon_path', 'login_note',
+        'panduan_pengguna_path', 'panduan_admin_path',
         'hero_title', 'hero_subtitle',
         'footer_lembaga', 'footer_deskripsi', 'footer_alamat', 'footer_email', 'footer_telepon', 'footer_copyright',
         'institusi_kode_pt', 'institusi_nama', 'institusi_klaster',
@@ -86,6 +87,26 @@ class PengaturanWeb extends Page implements HasForms
                             ->imagePreviewHeight('40'),
                         Forms\Components\TextInput::make('login_note')
                             ->label('Catatan di halaman login')->maxLength(160)->columnSpanFull(),
+                    ]),
+
+                Forms\Components\Section::make('Buku Panduan')
+                    ->description('PDF panduan lengkap yang bisa diunduh dari menu "Buku Panduan". Kosongkan untuk memakai panduan ringkas bawaan aplikasi.')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\FileUpload::make('panduan_pengguna_path')
+                            ->label('PDF Panduan Pengguna (Dosen)')
+                            ->disk('public')->directory('panduan')
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->maxSize(20480)
+                            ->downloadable()
+                            ->previewable(false),
+                        Forms\Components\FileUpload::make('panduan_admin_path')
+                            ->label('PDF Panduan Admin LPPM')
+                            ->disk('public')->directory('panduan')
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->maxSize(20480)
+                            ->downloadable()
+                            ->previewable(false),
                     ]),
 
                 Forms\Components\Section::make('Halaman Publik')

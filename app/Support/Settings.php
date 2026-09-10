@@ -188,6 +188,14 @@ final class Settings
             : '/'.ltrim($default, '/');
     }
 
+    /** URL berkas unggahan opsional (mis. PDF buku panduan) atau null bila belum diset. */
+    public static function optionalFileUrl(string $key): ?string
+    {
+        $path = self::all()[$key] ?? null;
+
+        return filled($path) ? Storage::disk('public')->url((string) $path) : null;
+    }
+
     /** Pemetaan key setelan -> path config default (best effort). */
     private static function configKey(string $key): string
     {
