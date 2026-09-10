@@ -1,8 +1,13 @@
 {{-- Header --}}
 <header id="site-header" class="sticky top-0 z-40 border-b border-transparent bg-white/70 backdrop-blur">
     <div class="mx-auto max-w-7xl px-4 h-16 md:h-20 flex items-center justify-between gap-4">
-        <a href="{{ route('landing') }}" class="flex items-center shrink-0">
-            <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-10 md:h-14 w-auto max-w-[240px] object-contain">
+        @php($logoInstansiUrl = $logoInstansiUrl ?? null)
+        <a href="{{ route('landing') }}" class="flex items-center gap-3 shrink-0">
+            <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-10 md:h-14 w-auto max-w-[200px] object-contain">
+            @if ($logoInstansiUrl)
+                <span class="h-8 md:h-10 w-px bg-slate-300"></span>
+                <img src="{{ $logoInstansiUrl }}" alt="Logo Instansi" class="h-10 md:h-14 w-auto max-w-[200px] object-contain">
+            @endif
         </a>
 
         <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-slate-600">

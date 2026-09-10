@@ -1,6 +1,7 @@
 @php
     $appName = $branding['app_name'] ?? 'SIP2M';
     $logoUrl = $branding['logo_url'] ?? asset('images/logo-sip2m.svg');
+    $logoInstansiUrl = $branding['logo_instansi_url'] ?? null;
     $primary = $branding['primary_color'] ?? '#3B5BD9';
     $faviconUrl = $branding['favicon_url'] ?? asset('images/favicon.svg');
 
@@ -62,7 +63,7 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-700 antialiased selection:bg-brand-600 selection:text-white">
 
-    @include('partials.site-header', ['nav' => $nav, 'logoUrl' => $logoUrl, 'appName' => $appName])
+    @include('partials.site-header', ['nav' => $nav, 'logoUrl' => $logoUrl, 'logoInstansiUrl' => $logoInstansiUrl, 'appName' => $appName])
 
     <div class="mx-auto max-w-7xl px-4 py-8 md:py-12">
         {{-- Breadcrumb --}}
@@ -179,6 +180,6 @@
         </div>
     </div>
 
-    @include('partials.site-footer', ['nav' => $nav, 'logoUrl' => $logoUrl, 'appName' => $appName, 'footer' => $footer])
+    @include('partials.site-footer', ['nav' => $nav, 'logoUrl' => $logoUrl, 'logoInstansiUrl' => $logoInstansiUrl, 'appName' => $appName, 'footer' => $footer])
 </body>
 </html>

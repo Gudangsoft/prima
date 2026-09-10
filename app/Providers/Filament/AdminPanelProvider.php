@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName((string) Settings::get('app_name', 'SIP2M'))
-            ->brandLogo($this->assetOrDefault('logo_path', 'images/logo-sip2m.svg'))
+            ->brandLogo(fn () => view('filament.brand-logo'))
             ->brandLogoHeight('3rem')
             ->favicon($this->assetOrDefault('favicon_path', 'images/favicon.svg'))
             ->login(Login::class)

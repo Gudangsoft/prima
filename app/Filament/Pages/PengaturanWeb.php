@@ -39,7 +39,7 @@ class PengaturanWeb extends Page implements HasForms
 
     /** Key setelan yang dikelola halaman ini. */
     private const KEYS = [
-        'app_name', 'primary_color', 'logo_path', 'favicon_path', 'login_note',
+        'app_name', 'primary_color', 'logo_path', 'logo_instansi_path', 'favicon_path', 'login_note',
         'panduan_pengguna_path', 'panduan_admin_path',
         'hero_title', 'hero_subtitle',
         'footer_lembaga', 'footer_deskripsi', 'footer_alamat', 'footer_email', 'footer_telepon', 'footer_copyright',
@@ -77,10 +77,15 @@ class PengaturanWeb extends Page implements HasForms
                         Forms\Components\ColorPicker::make('primary_color')
                             ->label('Warna utama')->required(),
                         Forms\Components\FileUpload::make('logo_path')
-                            ->label('Logo')
+                            ->label('Logo Sistem / Aplikasi')
                             ->image()->disk('public')->directory('branding')
                             ->imagePreviewHeight('56')
                             ->helperText('Kosongkan untuk memakai logo bawaan. Disarankan PNG/SVG transparan.'),
+                        Forms\Components\FileUpload::make('logo_instansi_path')
+                            ->label('Logo Instansi')
+                            ->image()->disk('public')->directory('branding')
+                            ->imagePreviewHeight('56')
+                            ->helperText('Opsional. Tampil berdampingan dengan Logo Sistem di header, halaman login, dan halaman depan.'),
                         Forms\Components\FileUpload::make('favicon_path')
                             ->label('Favicon')
                             ->image()->disk('public')->directory('branding')

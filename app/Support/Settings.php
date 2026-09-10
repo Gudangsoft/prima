@@ -161,6 +161,7 @@ final class Settings
             'app_name' => self::get('app_name', 'SIP2M'),
             'primary_color' => self::get('primary_color', '#3B5BD9'),
             'logo_url' => self::fileUrl('logo_path', 'images/logo-sip2m.svg'),
+            'logo_instansi_url' => self::optionalFileUrl('logo_instansi_path'),
             'favicon_url' => self::fileUrl('favicon_path', 'images/favicon.svg'),
             'login_note' => self::get('login_note'),
             'hero_title' => self::get('hero_title'),

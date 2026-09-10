@@ -71,6 +71,28 @@ class WebSettingsTest extends TestCase
         $this->get('/')->assertOk()->assertSee('LPPM Universitas Merdeka')->assertSee('lppm@merdeka.ac.id');
     }
 
+    public function test_second_institution_logo_renders_across_pages_when_set(): void
+    {
+        Settings::set('logo_instansi_path', 'branding/logo-instansi.png');
+
+        // Halaman depan (header + footer).
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('branding/logo-instansi.png')
+            ->assertSee('Logo Instansi');
+
+        // Header panel admin + halaman login memakai brand logo yang sama.
+        $this->get('/admin/login')
+            ->assertOk()
+            ->assertSee('branding/logo-instansi.png');
+    }
+
+    public function test_pages_render_fine_without_a_second_logo(): void
+    {
+        $this->get('/')->assertOk()->assertDontSee('Logo Instansi');
+        $this->get('/admin/login')->assertOk();
+    }
+
     public function test_admin_lppm_can_create_announcement_with_pdf(): void
     {
         Storage::fake('public');

@@ -21,6 +21,7 @@
 
     $appName = $branding['app_name'] ?? 'SIP2M';
     $logoUrl = $branding['logo_url'] ?? asset('images/logo-sip2m.svg');
+    $logoInstansiUrl = $branding['logo_instansi_url'] ?? null;
     $primary = $branding['primary_color'] ?? '#3B5BD9';
     $heroTitle = $branding['hero_title'] ?: 'Kelola usulan penelitian & pengabdian dalam satu alur terpadu';
     $heroSubtitle = $branding['hero_subtitle'] ?: 'Dari pengajuan usulan oleh dosen, persetujuan pimpinan, penilaian reviewer, penetapan pendanaan, hingga monitoring dan validasi luaran — semuanya tercatat dan terpantau.';
@@ -117,7 +118,7 @@
         </div>
     </div>
 
-    @include('partials.site-header', ['nav' => $nav, 'logoUrl' => $logoUrl, 'appName' => $appName])
+    @include('partials.site-header', ['nav' => $nav, 'logoUrl' => $logoUrl, 'logoInstansiUrl' => $logoInstansiUrl, 'appName' => $appName])
 
     {{-- Hero --}}
     <section id="beranda" class="relative overflow-hidden bg-brand-950 text-white">
@@ -387,7 +388,7 @@
         </div>
     </section>
 
-    @include('partials.site-footer', ['nav' => $nav, 'logoUrl' => $logoUrl, 'appName' => $appName, 'footer' => $footer])
+    @include('partials.site-footer', ['nav' => $nav, 'logoUrl' => $logoUrl, 'logoInstansiUrl' => $logoInstansiUrl, 'appName' => $appName, 'footer' => $footer])
 
     <script>
         (function () {

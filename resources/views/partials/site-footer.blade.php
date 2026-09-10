@@ -2,8 +2,13 @@
 <footer class="bg-slate-900 text-slate-400">
     <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-3">
         <div>
-            <span class="inline-flex rounded-xl bg-white/95 px-3 py-2 shadow-sm">
-                <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-9 w-auto max-w-[170px] object-contain">
+            @php($logoInstansiUrl = $logoInstansiUrl ?? null)
+            <span class="inline-flex items-center gap-2.5 rounded-xl bg-white/95 px-3 py-2 shadow-sm">
+                <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-9 w-auto max-w-[150px] object-contain">
+                @if ($logoInstansiUrl)
+                    <span class="h-7 w-px bg-slate-300"></span>
+                    <img src="{{ $logoInstansiUrl }}" alt="Logo Instansi" class="h-9 w-auto max-w-[150px] object-contain">
+                @endif
             </span>
             @if ($footer['deskripsi'])
                 <p class="mt-5 max-w-xs text-sm leading-relaxed">{{ $footer['deskripsi'] }}</p>
